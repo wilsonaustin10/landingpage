@@ -15,19 +15,19 @@ const testimonials: Testimonial[] = [
   {
     name: "Jason & Mary",
     location: "Dallas, TX",
-    text: "We needed to sell our house fast due to a job relocation. They made us a fair cash offer and closed in just 8 days!",
+    text: "We needed to sell our house fast due to a job relocation. Allied made us a fair cash offer and closed in just 8 days!",
     rating: 5
   },
   {
     name: "Robert Smith",
-    location: "Fort Worth, TX",
+    location: "Cleveland, OH",
     text: "I inherited a property that needed too many repairs. They bought it as-is and handled everything. No hassle, just cash in my pocket.",
     rating: 5
   },
   {
     name: "Sarah Johnson",
-    location: "Arlington, TX",
-    text: "After trying to sell with a realtor for 6 months, I contacted them. They closed quickly and even covered all closing costs!",
+    location: "Jacksonville, FL",
+    text: "After trying to sell with a realtor for 6 months, I contacted Allied House Buyers. They closed quickly and even covered all closing costs!",
     rating: 5
   }
 ];

@@ -14,14 +14,14 @@ export default function PropertyListedPage() {
   const handleChoice = (isListed: boolean) => {
     updateFormData({ isPropertyListed: isListed });
     trackEvent('property_listed_response', { isListed });
-    router.push('/property-details');
+    router.push('/timeline');
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1 bg-blue-800">
+      <main className="flex-1 bg-gray-50 pt-24">
         <div className="container mx-auto px-4 py-12">
-          <div className="max-w-3xl mx-auto text-center text-white">
+          <div className="max-w-3xl mx-auto text-center text-gray-900">
             <h1 className="text-3xl md:text-4xl font-bold mb-12">
               Help Us Out With A Few More Bits Of Info
             </h1>
@@ -30,11 +30,10 @@ export default function PropertyListedPage() {
 
             <div className="mb-12">
               <Link
-                href="tel:(512)-792-4086"
-                className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-md text-xl font-medium transition-colors"
-                onClick={() => trackEvent('phone_call_clicked')}
+                href="tel: (415)-579-3026"
+                className="inline-block bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-md text-xl font-medium transition-colors"
               >
-                Call Us Now: (512) 792-4086
+                Call Us Now: (415)-579-3026
               </Link>
             </div>
 
@@ -43,14 +42,14 @@ export default function PropertyListedPage() {
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => handleChoice(true)}
-                  className="flex-1 max-w-xs bg-white hover:bg-gray-100 text-blue-800 py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 max-w-xs bg-primary hover:bg-primary/90 text-white py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   <span>Yes</span>
                   <ThumbsUp className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleChoice(false)}
-                  className="flex-1 max-w-xs bg-white hover:bg-gray-100 text-blue-800 py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 max-w-xs bg-primary hover:bg-primary/90 text-white py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   <span>No</span>
                   <ThumbsDown className="w-5 h-5" />
@@ -60,10 +59,10 @@ export default function PropertyListedPage() {
           </div>
 
           <div className="max-w-3xl mx-auto mt-24">
-            <h2 className="text-3xl font-bold text-center text-white mb-8">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
               WE WANT TO HELP!
             </h2>
-            <p className="text-center text-white/90 leading-relaxed">
+            <p className="text-center text-gray-600 leading-relaxed">
               Life is hard enough without having to worry about trying to sell your home. 
               We do everything possible to make selling your home as convenient and stress-free as possible. 
               After you've completed the form above, we'll give you a call to determine the best solution for your situation.

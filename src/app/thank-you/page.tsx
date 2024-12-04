@@ -38,7 +38,7 @@ export default function ThankYouPage() {
               <div>
                 <h3 className="font-semibold text-lg mb-1">Quick Response</h3>
                 <p className="text-gray-600">
-                  We'll review your property details and contact you within 24 hours with a fair cash offer
+                  We'll review your property details and contact you immediately with a fair cash offer
                 </p>
               </div>
             </div>

@@ -45,7 +45,7 @@ export default function LeadForm() {
   };
 
   const validateAddress = (address: string) => {
-    return address.length >= 5 && address.includes(' ');
+    return address.trim().length > 0;
   };
 
   const validateForm = (): boolean => {
@@ -65,9 +65,15 @@ export default function LeadForm() {
 
   const handleAddressSelect = (addressData: AddressData) => {
     console.log('Address selected:', addressData);
+    
+    // Create a complete address string including zip code
+    const fullAddress = addressData.formattedAddress.includes(addressData.postalCode || '')
+      ? addressData.formattedAddress
+      : `${addressData.formattedAddress} ${addressData.postalCode || ''}`.trim();
+
     setFormData(prev => ({
       ...prev,
-      address: addressData.formattedAddress
+      address: fullAddress
     }));
     setErrors(prev => ({ ...prev, address: undefined }));
   };

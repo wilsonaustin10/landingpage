@@ -31,7 +31,7 @@ export function useGooglePlaces(
         inputRef.current,
         {
           componentRestrictions: { country: 'us' },
-          fields: ['formatted_address', 'place_id'],
+          fields: ['address_components', 'formatted_address', 'place_id'],
           types: ['address']
         }
       );

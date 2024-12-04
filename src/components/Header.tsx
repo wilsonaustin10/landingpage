@@ -1,36 +1,51 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { Phone } from 'lucide-react';
-import { trackEvent } from '../utils/analytics';
+import Link from 'next/link';
 
 export default function Header() {
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-4">
+    <header className="bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            {/* Replace with your actual logo */}
-            <div className="text-xl font-bold text-primary">FastCashOffer</div>
+          <Link href="/" className="flex items-center">
+            <div className="relative w-[300px] h-[80px]">
+              <Image
+                src="/logo3.png"
+                alt="Allied House Buyers"
+                fill
+                style={{ objectFit: 'contain' }}
+                priority
+                className="hover:opacity-90 transition-opacity"
+              />
+            </div>
           </Link>
-
-          <div className="flex items-center space-x-6">
-            <a 
-              href="tel:(512)-792-4086"
-              className="hidden md:flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
-              onClick={() => trackEvent('header_phone_click')}
+          <nav className="hidden md:flex space-x-8">
+            <Link 
+              href="/" 
+              className="text-gray-700 hover:text-primary font-medium"
             >
-              <Phone className="h-5 w-5" />
-              <span className="font-semibold">(512) 792-4086</span>
-            </a>
-            
+              Home
+            </Link>
+            <Link 
+              href="#how-it-works" 
+              className="text-gray-700 hover:text-primary font-medium"
+            >
+              How It Works
+            </Link>
+            <Link 
+              href="#testimonials" 
+              className="text-gray-700 hover:text-primary font-medium"
+            >
+              Testimonials
+            </Link>
+          </nav>
+          <div className="flex items-center">
             <Link
-              href="/"
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+              href="/initial"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
-              Get Cash Offer
+              Get Your Offer
             </Link>
           </div>
         </div>

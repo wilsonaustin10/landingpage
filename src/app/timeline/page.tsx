@@ -12,14 +12,20 @@ export default function TimelinePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     trackEvent('timeline_details_submitted');
-    router.push('/contact');
+    try {
+      trackEvent('timeline_submitted');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      router.push('/contact');
+    } catch (err) {
+      console.error('Error submitting timeline:', err);
+    }
   };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-20">
       <div className="max-w-xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-center mb-8">
-          When Would You Like to Sell?
+          A Couple More Questions
         </h1>
         
         <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-lg">
@@ -62,22 +68,20 @@ export default function TimelinePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reason for Selling
+                How much are you looking to get for the property?
               </label>
-              <select
-                value={formData.reasonForSelling || ''}
-                onChange={(e) => updateFormData({ reasonForSelling: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
-                required
-              >
-                <option value="">Select reason</option>
-                <option value="relocation">Relocation/Job Change</option>
-                <option value="financial">Financial Reasons</option>
-                <option value="inheritance">Inherited Property</option>
-                <option value="divorce">Divorce</option>
-                <option value="repairs">Too Many Repairs</option>
-                <option value="other">Other</option>
-              </select>
+              <input
+                type="range"
+                min="0"
+                max="800000"
+                step="10000"
+                value={formData.price || 0}
+                onChange={(e) => updateFormData({ price: e.target.value })}
+                className="w-full"
+              />
+              <div className="text-center mt-2">
+                <span>${Number(formData.price || 0).toLocaleString()}</span>
+              </div>
             </div>
           </div>
 

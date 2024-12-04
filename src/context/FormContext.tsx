@@ -20,11 +20,21 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
       return saved ? JSON.parse(saved) : {
         address: '',
         phone: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        estimatedValue: '',
+        Price: '',
       };
     }
     return {
       address: '',
       phone: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      estimatedValue: '',
+      Price: '',
     };
   });
 
@@ -43,11 +53,17 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
       case 'initial':
         return Boolean(formData.address && formData.phone);
       case 'property-details':
-        return Boolean(formData.bedrooms && formData.bathrooms && formData.squareFeet);
+        return true;
+      case 'property-listed':
+        return true;
       case 'timeline':
-        return Boolean(formData.timeframe && formData.propertyCondition);
+        return true;
+      case 'property-value':
+        return Boolean(formData.estimatedValue && formData.Price);
       case 'contact':
-        return Boolean(formData.email);
+        return Boolean(formData.firstName && formData.lastName && formData.email);
+      case 'thank-you':
+        return true;
       default:
         return false;
     }

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Phone, Mail, MapPin } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -9,24 +10,32 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">FastCashOffer</h3>
+            <div className="flex items-center">
+              <Image
+                src="/logo4.png"
+                alt="Allied House Buyers"
+                width={600}
+                height={160}
+                className="mr-2"
+              />
+            </div>
             <p className="text-gray-400">
               We buy houses in any condition. Get your fair cash offer today.
             </p>
             <div className="space-y-2">
               <a 
-                href="tel:(512)-792-4086"
+                href="tel: (415)-579-3026"
                 className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
               >
                 <Phone className="h-4 w-4" />
-                <span>(512) 792-4086</span>
+                <span>(415) 579-3026</span>
               </a>
               <a 
-                href="mailto:info@fastcashoffer.com"
+                href="mailto:info@alliedhousebuyers.com"
                 className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
               >
                 <Mail className="h-4 w-4" />
-                <span>info@fastcashoffer.com</span>
+                <span>info@alliedhousebuyers.com</span>
               </a>
             </div>
           </div>
@@ -57,10 +66,10 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Service Areas</h3>
             <ul className="space-y-2">
-              <li className="text-gray-400">Dallas, TX</li>
-              <li className="text-gray-400">Fort Worth, TX</li>
-              <li className="text-gray-400">Arlington, TX</li>
-              <li className="text-gray-400">Plano, TX</li>
+              <li className="text-gray-400">Texas</li>
+              <li className="text-gray-400">Florida</li>
+              <li className="text-gray-400">Ohio</li>
+              <li className="text-gray-400">North Carolina</li>
             </ul>
           </div>
 
@@ -80,7 +89,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} FastCashOffer. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} AAPG LLC. All rights reserved.</p>
           <div className="mt-2 space-x-4">
             <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy

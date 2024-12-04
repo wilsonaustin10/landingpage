@@ -4,30 +4,31 @@ import Testimonials from '../components/Testimonials';
 import TrustBadges from '../components/TrustBadges';
 import { CheckCircle } from 'lucide-react';
 import { Benefits } from '../components/Benefits';
+import { HowItWorks } from '../components/HowItWorks';
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-4">
+      <section className="pt-20 pb-16 px-4 bg-[url('/background.png')] bg-cover bg-center">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-outline-black">
             The fastest and easiest way to sell your house
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-white mb-8 text-outline-black">
             Sell your house in as little as 7 days - no repairs, no fees, and we cover closing costs
           </p>
           <LeadForm />
-          <Benefits />
+          <Benefits className="mx-auto mr-24" />
         </div>
       </section>
 
       <TrustBadges />
       
       {/* Benefits Section */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-8 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <h2 className="text-3xl font-bold text-center mb-6">
             Why Sell Your House To Us?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -46,15 +47,20 @@ export default function Home() {
               }
             ].map((benefit, index) => (
               <div key={index} className="text-center p-6 rounded-lg shadow-lg bg-white">
-                <h3 className="text-xl font-semibold mb-3">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.description}</p>
+                <h3 className="text-xl font-semibold mb-3 text-outline-white">{benefit.title}</h3>
+                <p className="text-gray-600 text-outline-white">{benefit.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <HowItWorks />
       
-      <Testimonials />
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-16 px-4 bg-gray-100">
+        <Testimonials />
+      </section>
     </main>
   );
 } 

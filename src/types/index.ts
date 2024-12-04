@@ -4,9 +4,10 @@ export interface LeadFormData {
   city?: string;
   state?: string;
   postalCode?: string;
-  placeId?: string;
   phone: string;
   email?: string;
+  firstName?: string;
+  lastName?: string;
   timeframe?: string;
   propertyCondition?: string;
   reasonForSelling?: string;
@@ -15,6 +16,9 @@ export interface LeadFormData {
   bathrooms?: string;
   squareFeet?: string;
   isPropertyListed?: boolean;
+  estimatedValue?: string;
+  price?: string;
+  placeId?: string;
 }
 
 export interface FormErrors {
@@ -23,7 +27,14 @@ export interface FormErrors {
   email?: string;
 }
 
-export type FormStep = 'initial' | 'property-details' | 'timeline' | 'contact';
+export type FormStep = 
+  | 'initial'
+  | 'property-details'
+  | 'property-listed'
+  | 'timeline'
+  | 'property-value'
+  | 'contact'
+  | 'thank-you';
 
 export interface Testimonial {
   name: string;

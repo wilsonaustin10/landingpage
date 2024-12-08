@@ -1,9 +1,39 @@
+/**
+ * Interface for form data based on actual data collection fields
+ */
 export interface LeadFormData {
-  address?: string;
+  // Address fields (required)
+  address: string;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  placeId?: string;
+
+  // Contact information (required)
+  phone: string;
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string;
-  estimatedValue?: string;
-  Price?: string;
+
+  // Property details
+  isPropertyListed?: boolean;
+  propertyCondition?: string;
+  timeframe?: string;
+  price?: string;
+
+  // System tracking
+  timestamp?: string;
+  lastUpdated?: string;
+  leadId?: string;
+}
+
+/**
+ * Type for tracking form submission metadata
+ */
+export interface FormSubmissionContext {
+  timestamp: string;
+  requestId: string;
+  ipAddress?: string;
+  leadId?: string;
 } 

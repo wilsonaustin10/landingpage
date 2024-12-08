@@ -2,6 +2,17 @@
 
 import { useEffect, useRef } from 'react';
 
+declare global {
+  namespace google.maps.places {
+    interface AutocompleteOptions {
+      componentRestrictions?: ComponentRestrictions;
+      fields?: string[];
+      types?: string[];
+      sessionToken?: google.maps.places.AutocompleteSessionToken;
+    }
+  }
+}
+
 export interface AddressData {
   formattedAddress: string;
   placeId?: string;
@@ -17,6 +28,7 @@ export function useGooglePlaces(
   onAddressSelect: (addressData: AddressData) => void
 ) {
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
 
   useEffect(() => {
     // Wait for both input ref and Google Maps to be available
@@ -26,13 +38,17 @@ export function useGooglePlaces(
     }
 
     try {
-      // Initialize autocomplete
+      // Create a new session token
+      sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+
+      // Initialize autocomplete with session token
       autocompleteRef.current = new window.google.maps.places.Autocomplete(
         inputRef.current,
         {
           componentRestrictions: { country: 'us' },
           fields: ['address_components', 'formatted_address', 'place_id'],
-          types: ['address']
+          types: ['address'],
+          sessionToken: sessionTokenRef.current
         }
       );
 
@@ -59,6 +75,9 @@ export function useGooglePlaces(
         });
 
         onAddressSelect(addressData);
+        
+        // Create a new session token after selection
+        sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
       });
 
       // Cleanup
@@ -67,6 +86,7 @@ export function useGooglePlaces(
         if (autocompleteRef.current) {
           google.maps.event.clearInstanceListeners(autocompleteRef.current);
         }
+        sessionTokenRef.current = null;
       };
     } catch (error) {
       console.error('Error initializing Places Autocomplete:', error);

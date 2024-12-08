@@ -7,7 +7,7 @@ import { trackEvent } from '../../utils/analytics';
 
 export default function TimelinePage() {
   const router = useRouter();
-  const { formData, updateFormData } = useForm();
+  const { formState, updateFormData } = useForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +35,7 @@ export default function TimelinePage() {
                 Timeframe
               </label>
               <select
-                value={formData.timeframe || ''}
+                value={formState.timeframe || ''}
                 onChange={(e) => updateFormData({ timeframe: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 required
@@ -53,7 +53,7 @@ export default function TimelinePage() {
                 Property Condition
               </label>
               <select
-                value={formData.propertyCondition || ''}
+                value={formState.propertyCondition || ''}
                 onChange={(e) => updateFormData({ propertyCondition: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 required
@@ -75,12 +75,12 @@ export default function TimelinePage() {
                 min="0"
                 max="800000"
                 step="10000"
-                value={formData.price || 0}
+                value={formState.price || 0}
                 onChange={(e) => updateFormData({ price: e.target.value })}
                 className="w-full"
               />
               <div className="text-center mt-2">
-                <span>${Number(formData.price || 0).toLocaleString()}</span>
+                <span>${Number(formState.price || 0).toLocaleString()}</span>
               </div>
             </div>
           </div>

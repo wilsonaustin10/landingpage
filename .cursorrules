@@ -1,5 +1,13 @@
 # .cursorrules
 
+# General
+1. Use Cursor AI to write code.
+2. Use Cursor AI to write documentation.
+3. Every time you write code, write a prompt for Cursor AI to help it understand your intentions.
+4. Provide reasoning and defense supported by reference documentation for every change you make.
+5. Provide thorough explanations of your code changes or new components.
+
+
 # Core Rules
 1. The landing page must be optimized for speed and responsiveness.
 2. All forms must auto-save user inputs (address and phone number) even if the user does not complete the form.

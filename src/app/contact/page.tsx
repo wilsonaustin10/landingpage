@@ -8,7 +8,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function ContactPage() {
   const router = useRouter();
-  const { formData, updateFormData } = useForm();
+  const { formState, updateFormData } = useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateEmail(formData.email || '')) {
+    if (!validateEmail(formState.email || '')) {
       setError('Please enter a valid email address');
       return;
     }
@@ -28,8 +28,43 @@ export default function ContactPage() {
     setError(null);
     
     try {
-      trackEvent('contact_details_submitted');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Submit complete form data to Google Sheets
+      console.log('Submitting complete form data:', formState);
+      const response = await fetch('/api/submit-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formState,
+          lastUpdated: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('API response:', result);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save form data');
+      }
+
+      // Track successful submission
+      trackEvent('form_submitted', {
+        hasEmail: !!formState.email,
+        hasPhone: !!formState.phone,
+        hasAddress: !!formState.address,
+        hasPropertyCondition: !!formState.propertyCondition,
+        isPropertyListed: formState.isPropertyListed,
+        hasTimeframe: !!formState.timeframe,
+        hasPrice: !!formState.price
+      });
+
       router.push('/thank-you');
     } catch (err) {
       setError('Something went wrong. Please try again.');
@@ -55,7 +90,7 @@ export default function ContactPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.firstName || ''}
+                  value={formState.firstName || ''}
                   onChange={(e) => updateFormData({ firstName: e.target.value })}
                   placeholder="First name"
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
@@ -68,7 +103,7 @@ export default function ContactPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.lastName || ''}
+                  value={formState.lastName || ''}
                   onChange={(e) => updateFormData({ lastName: e.target.value })}
                   placeholder="Last name"
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
@@ -83,7 +118,7 @@ export default function ContactPage() {
               </label>
               <input
                 type="email"
-                value={formData.email || ''}
+                value={formState.email || ''}
                 onChange={(e) => updateFormData({ email: e.target.value })}
                 placeholder="your@email.com"
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"

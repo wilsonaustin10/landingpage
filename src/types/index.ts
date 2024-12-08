@@ -1,25 +1,41 @@
 export interface LeadFormData {
+  // Address fields (required)
   address: string;
   streetAddress?: string;
   city?: string;
   state?: string;
   postalCode?: string;
+  placeId?: string;
+
+  // Contact information (required)
   phone: string;
-  email?: string;
   firstName?: string;
   lastName?: string;
-  timeframe?: string;
-  propertyCondition?: string;
-  reasonForSelling?: string;
-  askingPrice?: string;
-  bedrooms?: string;
-  bathrooms?: string;
-  squareFeet?: string;
+  email?: string;
+
+  // Property details
   isPropertyListed?: boolean;
-  estimatedValue?: string;
+  propertyCondition?: string;
+  timeframe?: string;
   price?: string;
-  placeId?: string;
+
+  // System tracking
+  timestamp?: string;
+  lastUpdated?: string;
+  leadId?: string;
 }
+
+export interface FormState extends LeadFormData {
+  isSubmitting?: boolean;
+  error?: string;
+}
+
+export type FormStep = 
+  | 'initial'
+  | 'property-details'
+  | 'timeline'
+  | 'contact'
+  | 'thank-you';
 
 export interface FormErrors {
   address?: string;
@@ -27,14 +43,11 @@ export interface FormErrors {
   email?: string;
 }
 
-export type FormStep = 
-  | 'initial'
-  | 'property-details'
-  | 'property-listed'
-  | 'timeline'
-  | 'property-value'
-  | 'contact'
-  | 'thank-you';
+export interface SubmissionResponse {
+  success: boolean;
+  error?: string;
+  message?: string;
+}
 
 export interface Testimonial {
   name: string;
@@ -42,4 +55,7 @@ export interface Testimonial {
   text: string;
   rating: number;
   image?: string;
-} 
+}
+
+
+ 

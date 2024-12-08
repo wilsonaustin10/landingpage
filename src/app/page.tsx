@@ -1,5 +1,5 @@
 import React from 'react';
-import LeadForm from '../components/LeadForm';
+import PropertyForm from '../components/PropertyForm';
 import Testimonials from '../components/Testimonials';
 import TrustBadges from '../components/TrustBadges';
 import { CheckCircle } from 'lucide-react';
@@ -11,15 +11,19 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-4 bg-[url('/background.png')] bg-cover bg-center">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-outline-black">
-            The fastest and easiest way to sell your house
-          </h1>
-          <p className="text-xl text-white mb-8 text-outline-black">
-            Sell your house in as little as 7 days - no repairs, no fees, and we cover closing costs
-          </p>
-          <LeadForm />
-          <Benefits className="mx-auto mr-24" />
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-outline-black">
+              The fastest and easiest way to sell your house
+            </h1>
+            <p className="text-xl text-white mb-8 text-outline-black">
+              Sell your house in as little as 7 days - no repairs, no fees, and we cover closing costs
+            </p>
+          </div>
+          <div className="max-w-md mx-auto">
+            <PropertyForm />
+          </div>
+          <Benefits className="mx-auto mt-12" />
         </div>
       </section>
 

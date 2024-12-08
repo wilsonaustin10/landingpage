@@ -1,7 +1,21 @@
+/**
+ * Interface for Google Places address data
+ * Matches the structure returned by the Places API
+ */
 export interface AddressData {
+  // Required fields
   formattedAddress: string;
-  location?: google.maps.LatLng;
+
+  // Optional fields from address components
+  streetNumber?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
   placeId?: string;
+
+  // Optional location data
+  location?: google.maps.LatLng;
 }
 
 declare global {

@@ -1,4 +1,5 @@
 import debounce from 'lodash/debounce';
+import { FormState } from '../types';
 
 interface FormData {
   address?: string;
@@ -119,31 +120,97 @@ const trackPartialSubmission = (formData: Partial<FormData>): void => {
   }
 };
 
-// Debounced function to handle form auto-save
-export const autoSaveForm = debounce(async (formId: string, formData: Partial<FormData>): Promise<void> => {
-  // Only proceed if we have meaningful data
-  if (Object.keys(formData).length === 0) return;
+// Optimize timeouts and add request batching
+const AUTOSAVE_DELAY = 15000; // Reduced to 15 seconds for better UX
+const BATCH_INTERVAL = 30000; // 30 seconds for batching requests
+let pendingSubmissions: Partial<FormData>[] = [];
 
-  // Save to localStorage first
+// Enhanced validation
+const validateFormData = (data: Partial<FormData>): boolean => {
+  if (data.phone && !/^\+?[\d\s-()]{10,}$/.test(data.phone)) return false;
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return false;
+  return true;
+};
+
+// Enhanced analytics tracking
+const trackFormInteraction = (formData: Partial<FormData>, action: string): void => {
+  try {
+    // Google Analytics 4
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', action, {
+        event_category: 'Lead Form',
+        event_label: Object.keys(formData).join(','),
+        value: Object.keys(formData).length
+      });
+    }
+
+    // Facebook Pixel
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('trackCustom', action, {
+        content_name: 'Lead Form',
+        content_category: 'Lead',
+        fields_completed: Object.keys(formData).join(',')
+      });
+    }
+
+    // Hotjar
+    if (typeof window !== 'undefined' && (window as any).hj) {
+      (window as any).hj('event', action);
+      (window as any).hj('trigger', 'form_interaction');
+    }
+  } catch (error) {
+    console.error('Analytics tracking error:', error);
+  }
+};
+
+// Optimized auto-save with batching
+export const autoSaveForm = debounce(async (formId: string, formData: Partial<FormData>): Promise<void> => {
+  if (!validateFormData(formData)) {
+    console.warn('Invalid form data detected');
+    return;
+  }
+
+  // Track interaction
+  trackFormInteraction(formData, 'form_field_update');
+
+  // Save to localStorage
   const savedLocally = saveToLocalStorage(formId, formData);
   
-  // If we have either address or phone, consider sending to CRM
   if ((formData.address || formData.phone) && canSubmitToCRM(formId)) {
-    const dataKey = generateDataKey(formData);
-    const previousData = localStorage.getItem(`${formId}_submitted`);
+    pendingSubmissions.push(formData);
     
-    // Check if this data combination was already submitted
-    if (previousData !== dataKey) {
-      const sentToCRM = await sendToCRM(formData);
-      if (sentToCRM) {
-        // Update submission tracking
-        lastSubmissionTime[formId] = Date.now();
-        localStorage.setItem(`${formId}_submitted`, dataKey);
-        trackPartialSubmission(formData);
-      }
+    // Process batch if it's time or we have enough submissions
+    if (pendingSubmissions.length >= 3 || Date.now() - lastBatchTime >= BATCH_INTERVAL) {
+      await processBatch(formId);
     }
   }
-}, 30000); // 30 second delay
+}, AUTOSAVE_DELAY);
+
+// Batch processing
+let lastBatchTime = Date.now();
+const processBatch = async (formId: string): Promise<void> => {
+  if (pendingSubmissions.length === 0) return;
+
+  const submissions = [...pendingSubmissions];
+  pendingSubmissions = [];
+  lastBatchTime = Date.now();
+
+  try {
+    const results = await Promise.allSettled(
+      submissions.map(data => sendToCRM(data))
+    );
+    
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value) {
+        trackFormInteraction(submissions[index], 'partial_submission_success');
+      } else {
+        console.error('Batch submission failed:', result);
+      }
+    });
+  } catch (error) {
+    console.error('Batch processing error:', error);
+  }
+};
 
 // Function to retrieve saved form data
 export const getSavedFormData = (formId: string): Partial<FormData> => {
@@ -164,4 +231,83 @@ export const clearSavedFormData = (formId: string): void => {
   } catch (error) {
     console.error('Error clearing form data:', error);
   }
-}; 
+};
+
+// Timeout duration in milliseconds
+const PARTIAL_LEAD_TIMEOUT = 60000; // 1 minute
+
+// Enhanced partial lead capture with validation
+export function setupPartialLeadCapture(formState: FormState) {
+  // Start capture only if we have both required fields
+  if (!formState.address || !formState.phone) {
+    return () => {};
+  }
+
+  let isSubmitted = false;
+  const captureTimeout = 60000; // 1 minute fixed timeout for abandonment
+
+  const timeoutId = setTimeout(async () => {
+    if (isSubmitted) return;
+
+    // Only capture if form is incomplete (no contact info)
+    const isIncomplete = !formState.firstName && !formState.lastName && !formState.email;
+    
+    if (isIncomplete) {
+      try {
+        const response = await fetch('/api/submit-lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            address: formState.address,
+            phone: formState.phone,
+            lastUpdated: new Date().toISOString(),
+            submissionType: 'partial',
+            captureType: 'abandoned',
+            timeOnPage: Date.now() - (window as any).pageLoadTime || 0
+          })
+        });
+
+        if (!response.ok) throw new Error('Failed to capture partial lead');
+        
+        isSubmitted = true;
+        trackFormInteraction(formState, 'partial_lead_captured');
+      } catch (error) {
+        console.error('Partial lead capture error:', error);
+        trackFormInteraction(formState, 'partial_lead_capture_failed');
+      }
+    }
+  }, captureTimeout);
+
+  return () => {
+    clearTimeout(timeoutId);
+    isSubmitted = true;
+  };
+}
+
+// Calculate lead quality score based on available data
+function calculateLeadScore(formState: FormState): number {
+  let score = 0;
+  
+  // Core fields
+  if (formState.address) score += 30;
+  if (formState.phone) score += 30;
+  
+  // Additional fields
+  if (formState.propertyCondition) score += 10;
+  if (formState.timeframe) score += 10;
+  if (formState.price) score += 10;
+  
+  // Contact info
+  if (formState.email) score += 5;
+  if (formState.firstName) score += 2.5;
+  if (formState.lastName) score += 2.5;
+  
+  return score;
+}
+
+// Calculate dynamic timeout based on user interaction
+function calculateDynamicTimeout(formState: FormState): number {
+  const fieldsCompleted = Object.keys(formState).filter(key => Boolean(formState[key as keyof FormState])).length;
+  const baseAdjustment = 15000; // 15 seconds per field
+  return fieldsCompleted * baseAdjustment;
+} 

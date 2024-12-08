@@ -111,3 +111,66 @@
 1. Keep code modular and maintainable.
 2. Regularly commit progress to GitHub with clear commit messages.
 3. Prioritize simplicity and user experience in all components.
+
+# Google Sheets Integration
+1. Use googleapis library for direct sheet interaction
+2. Follow JWT authentication pattern
+3. Maintain consistent column structure:
+   - timestamp (A) - ISO string format
+   - leadId (B) - Unique identifier with timestamp
+   - address (C) - Full property address
+   - streetAddress (D) - Street component
+   - city (E) - City component
+   - state (F) - State component
+   - postalCode (G) - Postal code
+   - phone (H) - Contact phone
+   - placeId (I) - Google Places ID
+   - firstName (J) - First name
+   - lastName (K) - Last name
+   - email (L) - Email address
+   - isPropertyListed (M) - Yes/No format
+   - propertyCondition (N) - Property condition
+   - timeframe (O) - Selling timeframe
+   - price (P) - Asking price
+   - lastUpdated (Q) - ISO string format
+
+# Lead Capture Rules
+1. Capture leads immediately after "Get Cash Offer" click
+2. Generate unique leadId using timestamp and random string
+3. Record submission timestamp and lastUpdated for every entry
+4. Handle missing fields gracefully with empty strings
+5. Convert boolean values to Yes/No format
+
+# Sheet Operations
+1. Use A1 notation for all range references
+2. Quote sheet names that contain spaces
+3. Use USER_ENTERED for value input option
+4. Use INSERT_ROWS for data insertion
+5. Validate response status (200 for success)
+
+# Error Handling
+1. Validate all required environment variables
+2. Check for missing credentials
+3. Provide detailed error messages
+4. Log errors for debugging
+5. Return standardized error responses
+
+# Security
+1. Use JWT authentication with service account
+2. Store credentials in environment variables
+3. Validate all input data
+4. Implement rate limiting
+5. Use HTTPS for all API calls
+
+# Data Formatting
+1. Use ISO strings for all dates
+2. Clean and standardize inputs
+3. Handle missing fields with empty strings
+4. Convert booleans to Yes/No
+5. Maintain consistent data types
+
+# Performance
+1. Single API call per submission
+2. Efficient error handling
+3. Proper credential caching
+4. Minimal data transformation

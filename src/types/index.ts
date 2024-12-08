@@ -23,6 +23,7 @@ export interface LeadFormData {
   timestamp?: string;
   lastUpdated?: string;
   leadId?: string;
+  submissionType?: 'partial' | 'complete';
 }
 
 export interface FormState extends LeadFormData {
@@ -37,16 +38,13 @@ export type FormStep =
   | 'contact'
   | 'thank-you';
 
-export interface FormErrors {
-  address?: string;
-  phone?: string;
-  email?: string;
-}
+export * from './form';
 
 export interface SubmissionResponse {
   success: boolean;
   error?: string;
   message?: string;
+  leadId?: string;
 }
 
 export interface Testimonial {
@@ -56,6 +54,8 @@ export interface Testimonial {
   rating: number;
   image?: string;
 }
+
+// ... any other exports ...
 
 
  

@@ -36,4 +36,15 @@ export interface FormSubmissionContext {
   requestId: string;
   ipAddress?: string;
   leadId?: string;
+}
+
+export interface FormErrors {
+  address?: string;
+  phone?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  propertyCondition?: string;
+  timeframe?: string;
+  price?: string;
 } 

@@ -17,6 +17,9 @@ export interface LeadFormData {
   email?: string;
 
   // Property details
+  bedrooms?: string;
+  bathrooms?: string;
+  squareFeet?: string;
   isPropertyListed?: boolean;
   propertyCondition?: string;
   timeframe?: string;

@@ -8,7 +8,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function PropertyValuePage() {
   const router = useRouter();
-  const { formData, updateFormData } = useForm();
+  const { formState, updateFormData } = useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,25 +54,7 @@ export default function PropertyValuePage() {
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
                 <input
                   type="number"
-                  value={formData.estimatedValue || ''}
-                  onChange={(e) => updateFormData({ estimatedValue: e.target.value })}
-                  placeholder="Enter amount"
-                  className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
-                  required
-                  min="0"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                What's the lowest price you'd accept for a quick, all-cash offer?
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
-                <input
-                  type="number"
-                  value={formData.price || ''}
+                  value={formState.price || ''}
                   onChange={(e) => updateFormData({ price: e.target.value })}
                   placeholder="Enter amount"
                   className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"

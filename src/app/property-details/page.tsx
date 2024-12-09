@@ -7,7 +7,7 @@ import { trackEvent } from '../../utils/analytics';
 
 export default function PropertyDetailsPage() {
   const router = useRouter();
-  const { formData, updateFormData } = useForm();
+  const { formState, updateFormData } = useForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +23,14 @@ export default function PropertyDetailsPage() {
         </h1>
         
         <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-lg">
+          {/* Commented out for now as per requirements
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Bedrooms
               </label>
               <select
-                value={formData.bedrooms || ''}
+                value={formState.bedrooms || ''}
                 onChange={(e) => updateFormData({ bedrooms: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 required
@@ -46,7 +47,7 @@ export default function PropertyDetailsPage() {
                 Bathrooms
               </label>
               <select
-                value={formData.bathrooms || ''}
+                value={formState.bathrooms || ''}
                 onChange={(e) => updateFormData({ bathrooms: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                 required
@@ -64,7 +65,7 @@ export default function PropertyDetailsPage() {
               </label>
               <input
                 type="number"
-                value={formData.squareFeet || ''}
+                value={formState.squareFeet || ''}
                 onChange={(e) => updateFormData({ squareFeet: e.target.value })}
                 placeholder="Approximate square footage"
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
@@ -72,6 +73,7 @@ export default function PropertyDetailsPage() {
               />
             </div>
           </div>
+          */}
 
           <div className="flex justify-between pt-4">
             <button

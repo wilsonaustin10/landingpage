@@ -11,6 +11,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 interface FormErrors {
   address?: string;
   phone?: string;
+  consent?: string;
   submit?: string;
 }
 
@@ -76,6 +77,10 @@ export default function PropertyForm() {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
+    if (!formState.consent) {
+      newErrors.consent = 'You must consent to be contacted';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -101,7 +106,7 @@ export default function PropertyForm() {
         lastUpdated: new Date().toISOString()
       };
 
-      const response = await fetch('/api/submit-lead', {
+      const response = await fetch('/api/submit-partial', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -120,6 +125,9 @@ export default function PropertyForm() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to save lead data');
       }
+
+      // Store leadId in form state for later use
+      updateFormData({ leadId: result.leadId });
 
       trackEvent('form_submitted', { 
         address: formState.address,
@@ -185,6 +193,28 @@ export default function PropertyForm() {
               </div>
             )}
           </div>
+
+          <div className="space-y-2">
+            <label className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 text-[#5b5a99] border-gray-300 rounded focus:ring-[#5b5a99]"
+                checked={formState.consent || false}
+                onChange={(e) => updateFormData({ consent: e.target.checked })}
+                onBlur={() => handleBlur('consent')}
+                required
+              />
+              <span className="text-sm text-gray-600">
+                By checking this box, I consent to being contacted by phone, email, or text message about my property sale inquiry, including through auto-dialed or pre-recorded messages.
+              </span>
+            </label>
+            {errors.consent && touched.consent && (
+              <div className="flex items-center space-x-1 text-red-500 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span>{errors.consent}</span>
+              </div>
+            )}
+          </div>
           
           {errors.submit && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
@@ -194,9 +224,9 @@ export default function PropertyForm() {
 
           <button
             type="submit"
-            disabled={isSubmitting || !formState.phone || !!errors.phone}
+            disabled={isSubmitting || !formState.phone || !formState.consent || !!errors.phone}
             className={`w-full px-4 py-3 text-lg font-semibold text-white bg-[#5b5a99] rounded-lg hover:bg-opacity-90 transition-colors
-              ${(isSubmitting || !formState.phone || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
+              ${(isSubmitting || !formState.phone || !formState.consent || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">

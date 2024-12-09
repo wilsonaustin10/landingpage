@@ -9,6 +9,7 @@ export interface LeadFormData {
 
   // Contact information (required)
   phone: string;
+  consent: boolean;
   firstName?: string;
   lastName?: string;
   email?: string;

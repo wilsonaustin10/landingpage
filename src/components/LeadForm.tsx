@@ -17,6 +17,7 @@ export default function LeadForm() {
   const [formData, setFormData] = useState<LeadFormData>({
     address: '',
     phone: '',
+    consent: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);

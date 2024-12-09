@@ -1,7 +1,7 @@
 import React from 'react';
 import PropertyForm from '../components/PropertyForm';
 import Testimonials from '../components/Testimonials';
-import TrustBadges from '../components/TrustBadges';
+import TrustBadges from '../components/TrustBadges';  // Kept for future use
 import { CheckCircle } from 'lucide-react';
 import { Benefits } from '../components/Benefits';
 import { HowItWorks } from '../components/HowItWorks';
@@ -27,7 +27,8 @@ export default function Home() {
         </div>
       </section>
 
-      <TrustBadges />
+      {/* TrustBadges component removed but kept for future use */}
+      {/* <TrustBadges /> */}
       
       {/* Benefits Section */}
       <section className="py-8 px-4 bg-white">

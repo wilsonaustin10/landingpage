@@ -23,12 +23,14 @@ function validatePartialData(data: Partial<LeadFormData>): boolean {
  * Called when user clicks first "Get Cash Offer" button
  */
 export async function POST(request: Request) {
+  const timestamp = new Date().toISOString();
+  const leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
   try {
-    // 1. Rate limiting check
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
-    const timestamp = new Date().toISOString();
     
+    // Apply rate limiting
     const rateLimitResult = await rateLimit(ip);
     if (!rateLimitResult.success) {
       return NextResponse.json(
@@ -37,8 +39,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Parse and validate request data
     const data = await request.json();
+    
     if (!validatePartialData(data)) {
       return NextResponse.json(
         { error: 'Invalid partial form data' },
@@ -46,29 +48,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Prepare partial data with tracking information
-    const formData: Partial<LeadFormData> = {
-      address: data.address,
-      phone: data.phone,
+    // Prepare data for sheet with timestamp and tracking
+    const leadData: Partial<LeadFormData> = {
+      ...data,
       timestamp,
       lastUpdated: timestamp,
-      leadId: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      leadId,
+      submissionType: 'partial'
     };
 
-    // 4. Append to Google Sheet with partial flag
-    const result = await appendLeadToSheet({
-      ...formData,
-      submissionType: 'partial'
-    });
-
+    const result = await appendLeadToSheet(leadData);
     if (!result.success) {
       throw new Error(result.error || 'Failed to save partial data');
     }
 
-    // 5. Return leadId for later use
     return NextResponse.json({ 
       success: true,
-      leadId: formData.leadId
+      leadId
     });
 
   } catch (error) {

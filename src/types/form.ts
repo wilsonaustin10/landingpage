@@ -41,6 +41,7 @@ export interface FormSubmissionContext {
 export interface FormErrors {
   address?: string;
   phone?: string;
+  consent?: string;
   email?: string;
   firstName?: string;
   lastName?: string;

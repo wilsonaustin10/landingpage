@@ -174,3 +174,33 @@
 2. Efficient error handling
 3. Proper credential caching
 4. Minimal data transformation
+
+# Lead Capture Flow
+1. Initial Lead Capture (First Step):
+   - Triggered by "Get Cash Offer" button click
+   - Submits to /api/submit-partial endpoint
+   - Generates unique leadId
+   - Creates new row in Google Sheets
+   - Stores leadId in form state
+   - Required fields: address, phone, consent
+
+2. Complete Lead Submission (Contact Page):
+   - Uses stored leadId from initial capture
+   - Submits to /api/submit-form endpoint
+   - Updates existing row in Google Sheets
+   - Required fields: firstName, lastName, email, propertyCondition, timeframe, price
+   - No duplicate rows created
+
+3. Google Sheets Integration:
+   - Uses A1 notation for ranges
+   - Maintains consistent column structure
+   - Updates existing rows based on leadId
+   - Records timestamps for all changes
+   - Handles partial and complete submissions
+
+4. Data Flow:
+   - PropertyForm.tsx -> submit-partial -> googleSheets.ts (new row)
+   - Contact/page.tsx -> submit-form -> googleSheets.ts (update row)
+   - Consistent leadId tracking throughout process
+   - Error handling at each step
+   - Validation of required fields

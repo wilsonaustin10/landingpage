@@ -20,6 +20,7 @@ const FormContext = createContext<FormContextType | undefined>(undefined);
 const initialState: FormState = {
   address: '',
   phone: '',
+  consent: false,
   firstName: '',
   lastName: '',
   email: '',
@@ -101,6 +102,9 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     } else if (!/^\+?[\d\s-()]{10,}$/.test(formState.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
     }
+    if (!formState.consent) {
+      newErrors.consent = 'You must consent to be contacted';
+    }
     if (formState.email) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email)) {
         newErrors.email = 'Please enter a valid email address';
@@ -130,8 +134,8 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   // Handle initial partial submission
   const submitPartialLead = async (): Promise<SubmissionResponse> => {
     // Validate required fields
-    if (!formState.address || !formState.phone) {
-      return { success: false, error: 'Address and phone are required' };
+    if (!formState.address || !formState.phone || !formState.consent) {
+      return { success: false, error: 'Address, phone, and consent are required' };
     }
 
     try {
@@ -140,7 +144,8 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           address: formState.address,
-          phone: formState.phone
+          phone: formState.phone,
+          consent: formState.consent
         })
       });
 

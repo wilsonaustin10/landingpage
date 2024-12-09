@@ -13,7 +13,8 @@ function validateFormData(data: Partial<LeadFormData>): data is LeadFormData {
   // Required fields validation
   const requiredFields: (keyof LeadFormData)[] = [
     'address', 'phone', 'firstName', 'lastName', 
-    'email', 'propertyCondition', 'timeframe', 'price'
+    'email', 'propertyCondition', 'timeframe', 'price',
+    'leadId'
   ];
   
   for (const field of requiredFields) {
@@ -62,9 +63,8 @@ export async function POST(request: Request) {
     // 3. Prepare data with tracking information
     const formData: LeadFormData = {
       ...data,
-      timestamp,
-      lastUpdated: timestamp,
-      leadId: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      timestamp: data.timestamp || timestamp,
+      lastUpdated: timestamp
     };
 
     // 4. Append to Google Sheet using shared utility

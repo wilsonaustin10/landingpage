@@ -31,11 +31,11 @@ export default function Footer() {
                 <span>(929)-499-2303</span>
               </a>
               <a 
-                href="mailto:info@FastCashForHomesJR.com"
+                href="mailto:info@jrhomebuyer.com"
                 className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
               >
                 <Mail className="h-4 w-4" />
-                <span>info@alliedhousebuyers.com</span>
+                <span>info@jrhomebuyer.com</span>
               </a>
             </div>
           </div>

@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-4 bg-[url('/background.png')] bg-cover bg-center">
+      <section className="pt-20 pb-16 px-4 bg-[url('/LandingPageBG2.png')] bg-cover bg-center">
         <div className="max-w-6xl mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-outline-black">

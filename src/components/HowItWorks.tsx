@@ -38,13 +38,13 @@ export function HowItWorks() {
               <div className="text-center">
                 <div className="flex justify-center mb-4">
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                    <step.icon className="w-8 h-8 text-primary" />
+                    <step.icon className="w-8 h-8 text-secondary" />
                   </div>
                 </div>
-                <div className="absolute -top-4 left-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+                <div className="absolute -top-4 left-0 w-8 h-8 bg-secondary text-white rounded-full flex items-center justify-center font-bold">
                   {index + 1}
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+                <h3 className="text-xl font-semibold mb-2 text-primary">{step.title}</h3>
                 <p className="text-gray-600">{step.description}</p>
               </div>
             </div>

@@ -198,7 +198,7 @@ export default function PropertyForm() {
             <label className="flex items-start space-x-3">
               <input
                 type="checkbox"
-                className="mt-1 h-4 w-4 text-[#5b5a99] border-gray-300 rounded focus:ring-[#5b5a99]"
+                className="mt-1 h-4 w-4 text-secondary border-gray-300 rounded focus:ring-secondary"
                 checked={formState.consent || false}
                 onChange={(e) => updateFormData({ consent: e.target.checked })}
                 onBlur={() => handleBlur('consent')}
@@ -225,7 +225,7 @@ export default function PropertyForm() {
           <button
             type="submit"
             disabled={isSubmitting || !formState.phone || !formState.consent || !!errors.phone}
-            className={`w-full px-4 py-3 text-lg font-semibold text-white bg-[#5b5a99] rounded-lg hover:bg-opacity-90 transition-colors
+            className={`w-full px-4 py-3 text-lg font-semibold text-white bg-secondary rounded-lg hover:bg-secondary/90 transition-colors
               ${(isSubmitting || !formState.phone || !formState.consent || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isSubmitting ? (

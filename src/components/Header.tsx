@@ -9,10 +9,10 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <div className="relative w-[300px] h-[80px]">
+            <div className="relative w-[250px] h-[60px]">
               <Image
-                src="/logo3.png"
-                alt="Allied House Buyers"
+                src="/JRlogo1.png"
+                alt="JR Home Buyer"
                 fill
                 style={{ objectFit: 'contain' }}
                 priority
@@ -23,19 +23,19 @@ export default function Header() {
           <nav className="hidden md:flex space-x-8">
             <Link 
               href="/" 
-              className="text-gray-700 hover:text-primary font-medium"
+              className="text-primary hover:text-accent font-medium transition-colors"
             >
               Home
             </Link>
             <Link 
               href="#how-it-works" 
-              className="text-gray-700 hover:text-primary font-medium"
+              className="text-primary hover:text-accent font-medium transition-colors"
             >
               How It Works
             </Link>
             <Link 
               href="#testimonials" 
-              className="text-gray-700 hover:text-primary font-medium"
+              className="text-primary hover:text-accent font-medium transition-colors"
             >
               Testimonials
             </Link>
@@ -43,7 +43,7 @@ export default function Header() {
           <div className="flex items-center">
             <Link
               href="/initial"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-secondary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-colors"
             >
               Get Your Offer
             </Link>

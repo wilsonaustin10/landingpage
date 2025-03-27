@@ -20,8 +20,10 @@ export function Benefits({ className }: BenefitsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {benefits.map((benefit, index) => (
           <div key={index} className="flex items-center space-x-3 text-xl font-bold">
-            <CheckCircle className="h-8 w-8 text-accent text-outline-white flex-shrink-0" />
-            <span className="text-gray-700 text-xl font-bold text-outline-white">{benefit}</span>
+            <div className="relative flex-shrink-0">
+              <CheckCircle className="h-8 w-8 text-accent stroke-[2.5] drop-shadow-[0_0_3px_rgba(255,255,255,0.8)]" />
+            </div>
+            <span className="text-primary text-xl font-bold text-outline-white">{benefit}</span>
           </div>
         ))}
       </div>

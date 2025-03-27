@@ -2,8 +2,8 @@
   "git": {
     "deploymentEnabled": {
       "main": false,
-      "client/jairo/main": true,
-      "production": true
+      "client/*/main": true,
+      "prod/*/main": true
     }
   },
   "github": {

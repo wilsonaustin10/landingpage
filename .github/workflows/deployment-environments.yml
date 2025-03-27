@@ -1,0 +1,90 @@
+name: Deployment Environments
+
+on:
+  push:
+    branches:
+      - 'client/jairo/feature-*'  # Dev environment
+      - 'client/jairo/main'       # Staging environment
+  workflow_dispatch:              # Manual trigger for production
+
+jobs:
+  determine_environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      url_suffix: ${{ steps.set-env.outputs.url_suffix }}
+    steps:
+      - id: set-env
+        run: |
+          if [[ ${{ github.ref }} == refs/heads/client/jairo/main ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "url_suffix=staging" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref }} == refs/heads/client/jairo/feature-* ]]; then
+            echo "environment=development" >> $GITHUB_OUTPUT
+            echo "url_suffix=dev" >> $GITHUB_OUTPUT
+          else
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "url_suffix=prod" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    needs: determine_environment
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.determine_environment.outputs.environment }}
+      url: ${{ format('https://jairo-{0}.yourdomain.com', needs.determine_environment.outputs.url_suffix) }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Build
+        env:
+          NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          NEXT_PUBLIC_GA_TRACKING_ID: ${{ secrets[format('{0}_GA_TRACKING_ID', needs.determine_environment.outputs.environment)] }}
+          NEXT_PUBLIC_FB_PIXEL_ID: ${{ secrets[format('{0}_FB_PIXEL_ID', needs.determine_environment.outputs.environment)] }}
+          GOHIGHLEVEL_API_KEY: ${{ secrets[format('{0}_GOHIGHLEVEL_API_KEY', needs.determine_environment.outputs.environment)] }}
+          ZAPIER_WEBHOOK_URL: ${{ secrets[format('{0}_ZAPIER_WEBHOOK_URL', needs.determine_environment.outputs.environment)] }}
+          GOOGLE_SHEETS_PRIVATE_KEY: ${{ secrets[format('{0}_GOOGLE_SHEETS_PRIVATE_KEY', needs.determine_environment.outputs.environment)] }}
+          GOOGLE_SHEETS_CLIENT_EMAIL: ${{ secrets[format('{0}_GOOGLE_SHEETS_CLIENT_EMAIL', needs.determine_environment.outputs.environment)] }}
+          GOOGLE_SHEETS_SHEET_ID: ${{ secrets[format('{0}_GOOGLE_SHEETS_SHEET_ID', needs.determine_environment.outputs.environment)] }}
+        run: npm run build
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID}}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID}}
+          alias-domains: |
+            jairo-${{ needs.determine_environment.outputs.url_suffix }}.yourdomain.com
+          
+      - name: Run Lighthouse Check
+        uses: treosh/lighthouse-ci-action@v9
+        with:
+          urls: |
+            https://jairo-${{ needs.determine_environment.outputs.url_suffix }}.yourdomain.com
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          
+      - name: Notify Deployment Status
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const environment = '${{ needs.determine_environment.outputs.environment }}';
+            const url = 'https://jairo-${{ needs.determine_environment.outputs.url_suffix }}.yourdomain.com';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Deployed to ${environment} environment!\n\nURL: ${url}\n\nLighthouse report will be available in the checks tab.`
+            }) 

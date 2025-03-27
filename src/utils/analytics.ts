@@ -10,17 +10,17 @@ const analyticsConfig: Record<string, EnvironmentConfig> = {
   development: {
     measurementId: process.env.NEXT_PUBLIC_GA_TRACKING_ID || '',
     debug: true,
-    cookieDomain: 'jairo-dev.yourdomain.com'
+    cookieDomain: 'dev-getoffer.jrhomebuyer.com'
   },
   staging: {
     measurementId: process.env.NEXT_PUBLIC_GA_TRACKING_ID || '',
     debug: true,
-    cookieDomain: 'jairo-staging.yourdomain.com'
+    cookieDomain: 'staging-getoffer.jrhomebuyer.com'
   },
   production: {
     measurementId: process.env.NEXT_PUBLIC_GA_TRACKING_ID || '',
     debug: false,
-    cookieDomain: 'jairo.yourdomain.com'
+    cookieDomain: 'getoffer.jrhomebuyer.com'
   }
 };
 

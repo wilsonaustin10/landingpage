@@ -24,7 +24,7 @@ jobs:
             echo "url_suffix=dev" >> $GITHUB_OUTPUT
           else
             echo "environment=production" >> $GITHUB_OUTPUT
-            echo "url_suffix=prod" >> $GITHUB_OUTPUT
+            echo "url_suffix=" >> $GITHUB_OUTPUT  # Empty for production (no suffix)
           fi
 
   deploy:
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ needs.determine_environment.outputs.environment }}
-      url: ${{ format('https://jairo-{0}.yourdomain.com', needs.determine_environment.outputs.url_suffix) }}
+      url: ${{ needs.determine_environment.outputs.environment == 'production' && 'https://getoffer.jrhomebuyer.com' || format('https://{0}-getoffer.jrhomebuyer.com', needs.determine_environment.outputs.url_suffix) }}
     
     steps:
       - uses: actions/checkout@v3
@@ -50,7 +50,7 @@ jobs:
           # Google Analytics Configuration
           NEXT_PUBLIC_GA_TRACKING_ID: ${{ secrets[format('{0}_GA_TRACKING_ID', needs.determine_environment.outputs.environment)] }}
           NEXT_PUBLIC_GA_DEBUG_MODE: ${{ needs.determine_environment.outputs.environment != 'production' }}
-          NEXT_PUBLIC_GA_COOKIE_DOMAIN: ${{ format('jairo-{0}.yourdomain.com', needs.determine_environment.outputs.url_suffix) }}
+          NEXT_PUBLIC_GA_COOKIE_DOMAIN: ${{ needs.determine_environment.outputs.environment == 'production' && 'getoffer.jrhomebuyer.com' || format('{0}-getoffer.jrhomebuyer.com', needs.determine_environment.outputs.url_suffix) }}
           NEXT_PUBLIC_VERCEL_ENV: ${{ needs.determine_environment.outputs.environment }}
           
           # Other Environment Variables
@@ -72,13 +72,13 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID}}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID}}
           alias-domains: |
-            jairo-${{ needs.determine_environment.outputs.url_suffix }}.yourdomain.com
+            ${{ needs.determine_environment.outputs.environment == 'production' && 'getoffer.jrhomebuyer.com' || format('{0}-getoffer.jrhomebuyer.com', needs.determine_environment.outputs.url_suffix) }}
           
       - name: Run Lighthouse Check
         uses: treosh/lighthouse-ci-action@v9
         with:
           urls: |
-            https://jairo-${{ needs.determine_environment.outputs.url_suffix }}.yourdomain.com
+            ${{ needs.determine_environment.outputs.environment == 'production' && 'https://getoffer.jrhomebuyer.com' || format('https://{0}-getoffer.jrhomebuyer.com', needs.determine_environment.outputs.url_suffix) }}
           uploadArtifacts: true
           temporaryPublicStorage: true
           
@@ -87,7 +87,9 @@ jobs:
         with:
           script: |
             const environment = '${{ needs.determine_environment.outputs.environment }}';
-            const url = 'https://jairo-${{ needs.determine_environment.outputs.url_suffix }}.yourdomain.com';
+            const url = environment === 'production' 
+              ? 'https://getoffer.jrhomebuyer.com'
+              : `https://${environment}-getoffer.jrhomebuyer.com`;
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,

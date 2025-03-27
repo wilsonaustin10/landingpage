@@ -47,8 +47,14 @@ jobs:
         
       - name: Build
         env:
-          NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          # Google Analytics Configuration
           NEXT_PUBLIC_GA_TRACKING_ID: ${{ secrets[format('{0}_GA_TRACKING_ID', needs.determine_environment.outputs.environment)] }}
+          NEXT_PUBLIC_GA_DEBUG_MODE: ${{ needs.determine_environment.outputs.environment != 'production' }}
+          NEXT_PUBLIC_GA_COOKIE_DOMAIN: ${{ format('jairo-{0}.yourdomain.com', needs.determine_environment.outputs.url_suffix) }}
+          NEXT_PUBLIC_VERCEL_ENV: ${{ needs.determine_environment.outputs.environment }}
+          
+          # Other Environment Variables
+          NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
           NEXT_PUBLIC_FB_PIXEL_ID: ${{ secrets[format('{0}_FB_PIXEL_ID', needs.determine_environment.outputs.environment)] }}
           GOHIGHLEVEL_API_KEY: ${{ secrets[format('{0}_GOHIGHLEVEL_API_KEY', needs.determine_environment.outputs.environment)] }}
           ZAPIER_WEBHOOK_URL: ${{ secrets[format('{0}_ZAPIER_WEBHOOK_URL', needs.determine_environment.outputs.environment)] }}
@@ -60,6 +66,7 @@ jobs:
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
         with:
+          zeit-token: ${{ secrets.VERCEL_TOKEN }}  # Required for backward compatibility
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID}}

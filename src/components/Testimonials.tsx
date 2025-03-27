@@ -21,7 +21,7 @@ const testimonials: Testimonial[] = [
   {
     name: "Robert Smith",
     location: "Cleveland, OH",
-    text: "I inherited a property that needed too many repairs. They bought it as-is and handled everything. No hassle, just cash in my pocket.",
+    text: "I inherited a property that needed too many repairs. JR Home Buyer bought it as-is and handled everything. No hassle, just cash in my pocket.",
     rating: 5
   },
   {

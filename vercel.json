@@ -1,0 +1,18 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "main": false,
+      "client/jairo/main": true,
+      "production": true
+    }
+  },
+  "github": {
+    "enabled": true,
+    "silent": true
+  },
+  "domains": [
+    "getoffer.jrhomebuyer.com",
+    "staging-getoffer.jrhomebuyer.com",
+    "dev-getoffer.jrhomebuyer.com"
+  ]
+} 

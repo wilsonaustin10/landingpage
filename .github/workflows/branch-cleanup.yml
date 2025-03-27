@@ -1,0 +1,33 @@
+name: Branch Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - 'client/*/main'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Delete merged branch
+        run: |
+          if [[ ${{ github.event.pull_request.merged }} == true ]]; then
+            git push origin --delete ${{ github.event.pull_request.head.ref }}
+          fi
+        
+      - name: Notify on branch deletion
+        if: github.event.pull_request.merged == true
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🧹 Branch cleanup completed: `${{ github.event.pull_request.head.ref }}` has been deleted.'
+            }) 

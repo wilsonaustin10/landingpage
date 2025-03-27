@@ -1,0 +1,34 @@
+name: Branch Protection
+
+on:
+  push:
+    branches:
+      - 'client/*/main'
+  pull_request:
+    branches:
+      - 'client/*/main'
+
+jobs:
+  protect-client-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Tests
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+            npm test
+          fi
+        
+      - name: Lint Check
+        run: |
+          if [ -f "package.json" ]; then
+            npm run lint
+          fi
+          
+      - name: Build Check
+        run: |
+          if [ -f "package.json" ]; then
+            npm run build
+          fi 

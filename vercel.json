@@ -2,14 +2,29 @@
   "git": {
     "deploymentEnabled": {
       "main": false,
-      "client/jairo/main": true,
-      "production": true
+      "prod/jairo/main": true,
+      "client/jairo/main": true
     }
   },
   "github": {
     "enabled": true,
     "silent": true
   },
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "public": true,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ],
   "domains": [
     "getoffer.jrhomebuyer.com",
     "staging-getoffer.jrhomebuyer.com",

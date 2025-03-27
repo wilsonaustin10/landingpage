@@ -1,0 +1,28 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "main": false,
+      "prod/allied/main": true,
+      "client/allied/main": true
+    }
+  },
+  "github": {
+    "enabled": true,
+    "silent": true
+  },
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "public": true,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+} 

@@ -35,7 +35,7 @@ export default function Footer() {
                 className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
               >
                 <Mail className="h-4 w-4" />
-                <span>info@alliedhousebuyers.com</span>
+                <span>info@FastCashForHomesJR.com</span>
               </a>
             </div>
           </div>

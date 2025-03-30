@@ -24,10 +24,5 @@
       "source": "/(.*)",
       "destination": "/"
     }
-  ],
-  "domains": [
-    "getoffer.jrhomebuyer.com",
-    "staging-getoffer.jrhomebuyer.com",
-    "dev-getoffer.jrhomebuyer.com"
   ]
 } 

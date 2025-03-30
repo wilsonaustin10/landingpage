@@ -54,6 +54,17 @@ export const getAnalyticsConfig = (): GA4Config => {
   };
 };
 
+// Legacy tracking function for compatibility
+export const trackEvent = (eventName: string, params?: Record<string, any>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, {
+      ...params,
+      environment: process.env.NEXT_PUBLIC_VERCEL_ENV,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
 // Custom event types for property leads
 export const LeadEvents = {
   FORM_START: 'property_form_start',

@@ -1,0 +1,43 @@
+# JR Home Buyer Landing Page - Dependencies & Setup Guide
+
+## Required Software
+- Node.js >= 18.0.0
+- npm >= 9.0.0 or yarn >= 1.22.0
+
+## Main Dependencies
+- Next.js 14.x
+- React 18.x
+- TailwindCSS 3.x
+
+## API Keys Required
+- Google Maps/Places API key with Places API enabled
+- Google Analytics measurement ID (GA4)
+- Google Sheets API credentials (for lead tracking)
+
+## Environment Setup
+1. Clone the repository
+2. Copy .env.example to .env.local and fill in required values
+3. Run `npm install` or `yarn` to install dependencies
+4. Run `npm run dev` or `yarn dev` to start development server
+
+## Google Places API Configuration
+- Must enable Places API in Google Cloud Console
+- API key must have HTTP referrer restrictions including:
+  * Your production domain
+  * Your staging domain
+  * localhost for development
+
+## Google Sheets Integration
+- Service account with edit access to target spreadsheet
+- Requires client email and private key credentials
+
+## Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## Deployment
+- Recommended: Deploy to Vercel
+- Set all environment variables in Vercel project settings
+- Connect to GitHub repository for automatic deployments 

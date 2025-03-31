@@ -87,24 +87,43 @@ export default function PropertyForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
-
-    // Mark all fields as touched on submit attempt
-    setTouched({ address: true, phone: true });
-
-    if (!validateForm()) {
-      trackEvent('form_validation_failed', { errors });
-      return;
+    
+    // Validate form before submission
+    const validationErrors: Record<string, string> = {};
+    
+    if (!formState.address?.trim()) {
+      validationErrors.address = 'Address is required';
     }
     
+    if (!formState.phone?.trim()) {
+      validationErrors.phone = 'Phone number is required';
+    } else if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(formState.phone)) {
+      validationErrors.phone = 'Invalid phone format. Please use (XXX) XXX-XXXX';
+    }
+
+    if (!formState.consent) {
+      validationErrors.consent = 'You must consent to be contacted';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     setIsSubmitting(true);
-    setErrors(prev => ({ ...prev, submit: undefined }));
+    setErrors({});
 
     try {
       const dataToSubmit = {
         ...formState,
         lastUpdated: new Date().toISOString()
       };
+
+      console.log('Submitting form data:', {
+        address: dataToSubmit.address,
+        phone: dataToSubmit.phone,
+        consent: dataToSubmit.consent
+      });
 
       const response = await fetch('/api/submit-partial', {
         method: 'POST',
@@ -114,13 +133,18 @@ export default function PropertyForm() {
         body: JSON.stringify(dataToSubmit)
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      let result;
+      try {
+        const text = await response.text();
+        result = text ? JSON.parse(text) : {};
+        if (!response.ok) {
+          console.error('API error response:', text);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      } catch (parseError) {
+        console.error('Error parsing API response:', parseError);
+        throw new Error(`Failed to parse API response: ${response.status} ${response.statusText}`);
       }
-
-      const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to save lead data');

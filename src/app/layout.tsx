@@ -7,9 +7,31 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Script from 'next/script';
 import Analytics from '../components/Analytics';
-import { createContext, useContext, useState } from 'react';
+import { ScriptLoadingProvider } from '../context/ScriptLoadingContext';
+import { useScriptLoading } from '../context/ScriptLoadingContext';
 
 const inter = Inter({ subsets: ['latin'] });
+
+function GoogleMapsLoader() {
+  const { setGoogleMapsLoaded } = useScriptLoading();
+
+  return (
+    <Script
+      src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&libraries=places&v=beta`}
+      strategy="afterInteractive"
+      async
+      defer
+      onLoad={() => {
+        console.log('Google Maps Places API loaded successfully (via Script tag)');
+        setGoogleMapsLoaded(true);
+      }}
+      onError={(e) => {
+        console.error('Error loading Google Maps Places API:', e);
+        setGoogleMapsLoaded(false);
+      }}
+    />
+  );
+}
 
 export default function RootLayout({
   children,
@@ -19,28 +41,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&libraries=places&v=beta`}
-          strategy="afterInteractive"
-          async
-          defer
-          onLoad={() => {
-            console.log('Google Maps Places API loaded successfully');
-          }}
-          onError={(e) => {
-            console.error('Error loading Google Maps Places API:', e);
-          }}
-        />
+        {/* Script loading is handled within the provider now */}
       </head>
       <body className={inter.className}>
-        <FormProvider>
-          <Analytics />
-          <Header />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Footer />
-        </FormProvider>
+        <ScriptLoadingProvider>
+          <FormProvider>
+            <GoogleMapsLoader />
+            <Analytics />
+            <Header />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </FormProvider>
+        </ScriptLoadingProvider>
       </body>
     </html>
   );

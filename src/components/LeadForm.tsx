@@ -2,10 +2,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { LeadFormData } from '../types';
+import type { AddressData } from '../types/GooglePlacesTypes';
 import { trackEvent } from '../utils/analytics';
-import { useGooglePlaces, AddressData } from '../hooks/useGooglePlaces';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useScriptLoading } from '../context/ScriptLoadingContext';
 
 interface FormErrors {
   address?: string;
@@ -22,23 +23,92 @@ export default function LeadForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const addressContainerRef = useRef<HTMLDivElement>(null);
+  const placeElementRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const router = useRouter();
-
+  const { isGoogleMapsLoaded } = useScriptLoading();
+  
+  // Initialize Google Places when script is loaded
   useEffect(() => {
-    const checkGoogleMapsLoaded = () => {
-      if (window.google?.maps?.places) {
-        setIsGoogleLoaded(true);
-      } else {
-        console.error('Google Maps Places API not loaded');
-        // Retry after a short delay
-        setTimeout(checkGoogleMapsLoaded, 1000);
-      }
-    };
+    if (!isGoogleMapsLoaded || !addressContainerRef.current || placeElementRef.current) {
+      return;
+    }
+    
+    try {
+      // Create and configure PlaceAutocompleteElement
+      const placeElement = new window.google.maps.places.PlaceAutocompleteElement({
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      // Set placeholder and styling
+      placeElement.setAttribute('placeholder', 'Enter your property address');
+      placeElement.setAttribute('class', `w-full px-4 py-3 text-lg outline-none ${errors.address && touched.address ? 'text-red-600' : 'text-gray-900'}`);
+      
+      // Add place selection handler
+      placeElement.addEventListener('gmp-placeselect', async (event) => {
+        console.log('gmp-placeselect event fired:', event);
+        
+        // Safely access place data
+        const placeDetail = (event as CustomEvent<{ place: google.maps.places.Place }>).detail;
+        if (!placeDetail || !placeDetail.place) {
+          console.error('Place selection event missing detail or place data:', event);
+          setErrors(prev => ({ ...prev, address: 'Could not retrieve address details from selection.' }));
+          return;
+        }
+        
+        const place = placeDetail.place;
+        await place.fetchFields({ fields: ['address_components', 'formatted_address', 'place_id'] });
+        
+        const placeJson = place.toJSON();
+        if (!placeJson.formatted_address) {
+          setErrors(prev => ({ ...prev, address: 'Invalid address selected' }));
+          return;
+        }
 
-    checkGoogleMapsLoaded();
-  }, []);
+        const addressData: AddressData = {
+          formattedAddress: placeJson.formatted_address,
+          placeId: placeJson.place_id
+        };
+
+        // Parse address components
+        placeJson.address_components?.forEach(component => {
+          const type = component.types[0];
+          switch (type) {
+            case 'street_number': addressData.streetNumber = component.long_name; break;
+            case 'route': addressData.street = component.long_name; break;
+            case 'locality': addressData.city = component.long_name; break;
+            case 'administrative_area_level_1': addressData.state = component.short_name; break;
+            case 'postal_code': addressData.postalCode = component.long_name; break;
+          }
+        });
+        
+        // Handle address selected
+        handleAddressSelect(addressData);
+      });
+      
+      // Clear container and append the element
+      addressContainerRef.current.innerHTML = '';
+      addressContainerRef.current.appendChild(placeElement);
+      placeElementRef.current = placeElement;
+      
+    } catch (error) {
+      console.error('Error initializing Places Autocomplete:', error);
+      setErrors(prev => ({ ...prev, address: 'Failed to initialize address lookup' }));
+    }
+    
+    // Cleanup function
+    return () => {
+      if (placeElementRef.current && addressContainerRef.current?.contains(placeElementRef.current)) {
+        try {
+          addressContainerRef.current.removeChild(placeElementRef.current);
+        } catch (e) {
+          console.error("Error during PlaceAutocompleteElement cleanup:", e);
+        }
+      }
+      placeElementRef.current = null;
+    };
+  }, [isGoogleMapsLoaded, errors.address, touched.address]);
 
   const validatePhone = (phone: string) => {
     const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
@@ -79,8 +149,6 @@ export default function LeadForm() {
     setErrors(prev => ({ ...prev, address: undefined }));
   };
 
-  useGooglePlaces(addressInputRef, handleAddressSelect);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -120,7 +188,7 @@ export default function LeadForm() {
     validateForm();
   };
 
-  if (!isGoogleLoaded) {
+  if (!isGoogleMapsLoaded) {
     return (
       <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
         <div className="flex items-center justify-center space-x-2">
@@ -136,22 +204,11 @@ export default function LeadForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
           <div className="relative">
-            <input
-              ref={addressInputRef}
-              type="text"
-              placeholder="Enter your property address"
-              className={`w-full px-4 py-3 border rounded-lg transition-colors
-                ${errors.address && touched.address 
-                  ? 'border-red-500 focus:ring-red-500' 
-                  : 'border-gray-300 focus:ring-primary'} 
-                focus:ring-2 focus:border-transparent`}
-              defaultValue={formData.address}
-              onChange={(e) => {
-                console.log('Address input changed:', e.target.value);
-                setFormData(prev => ({ ...prev, address: e.target.value }));
-              }}
-              onBlur={() => handleBlur('address')}
-              required
+            {/* Replace input with div container for PlaceAutocompleteElement */}
+            <div 
+              ref={addressContainerRef}
+              id="lead-form-address-container" 
+              className="w-full min-h-[50px]"
             />
           </div>
           {errors.address && touched.address && (

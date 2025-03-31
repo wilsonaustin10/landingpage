@@ -46,7 +46,40 @@
 /* Hide the Google Places API attribution */
 .pac-logo:after {
   display: none !important;
-} 
+}
+
+/* Attempt to override PlaceAutocompleteElement internal styles */
+gmp-place-autocomplete {
+  /* Remove any host borders/background if necessary */
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Target potential internal input element */
+gmp-place-autocomplete input {
+  box-shadow: none !important; /* Remove default inner shadow/border */
+  border: none !important; /* Remove default border */
+  outline: none !important; /* Remove default outline */
+  padding-left: 0.5rem !important; /* Adjust padding if icon is removed */
+  padding-right: 0.5rem !important;
+}
+
+/* Target potential icon container or pseudo-element */
+gmp-place-autocomplete [class*="icon"],
+/* Common pseudo-element patterns for icons */
+gmp-place-autocomplete *::before,
+gmp-place-autocomplete *::after {
+  display: none !important; /* Hide potential icon elements */
+  content: none !important;
+  background-image: none !important;
+}
+
+/* Ensure our AddressInput container styles don't interfere negatively */
+#address-input-container gmp-place-autocomplete input {
+    /* Re-apply desired input styles if overrides above were too aggressive */
+    /* Example: Re-apply padding (adjust as needed) */
+    padding: 0.75rem 1rem !important; /* Match py-3 px-4 */
+}
 
 /* Add these to your CSS file */
 .text-outline-white {

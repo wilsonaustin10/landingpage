@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useGooglePlaces } from '../hooks/useGooglePlaces';
 import type { AddressData } from '../types/GooglePlacesTypes';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useForm } from '../context/FormContext';
 
 interface AddressInputProps {
@@ -22,7 +22,6 @@ export default function AddressInput({
   readOnly = false
 }: AddressInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AddressData | null>(null);
   const [localError, setLocalError] = useState<string>('');
@@ -64,11 +63,9 @@ export default function AddressInput({
   };
 
   // Only initialize Google Places if not readOnly
-  if (!readOnly) {
-    useGooglePlaces(inputRef, handleAddressSelect);
-  }
+  const { isLoading, error: googleError } = !readOnly ? useGooglePlaces(inputRef, handleAddressSelect) : { isLoading: false, error: null };
 
-  const error = externalError || localError || errors?.address;
+  const error = externalError || localError || errors?.address || googleError;
 
   return (
     <div className={`space-y-4 ${className}`}>

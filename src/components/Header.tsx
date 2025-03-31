@@ -11,8 +11,8 @@ export default function Header() {
           <Link href="/" className="flex items-center">
             <div className="relative w-[250px] h-[60px]">
               <Image
-                src="/JRlogo1.png"
-                alt="JR Home Buyer"
+                src="/XVRLogo.png"
+                alt="XVR Buys Houses"
                 fill
                 style={{ objectFit: 'contain' }}
                 priority

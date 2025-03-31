@@ -8,11 +8,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#0e0d35', // Dark navy blue
-        secondary: '#b64018', // Deep rust/orange
-        accent: '#f57e5b', // Light coral/orange
-        background: '#ffffff',
-        text: '#333333',
+        primary: '#000000', // Black
+        secondary: '#89CFF0', // Baby blue
+        accent: '#89CFF0', // Baby blue
+        highlight: '#89CFF0', // Baby blue for consistent highlighting
+        background: '#ffffff', // White
+        text: '#333333', // Dark gray for regular text
+        footer: {
+          bg: '#000000', // Black
+          text: '#ffffff', // White
+          hover: '#89CFF0', // Baby blue
+        }
       },
     },
   },

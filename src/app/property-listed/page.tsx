@@ -30,10 +30,10 @@ export default function PropertyListedPage() {
 
             <div className="mb-12">
               <Link
-                href="tel: (415)-579-3026"
-                className="inline-block bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-md text-xl font-medium transition-colors"
+                href="tel:(415) 843-7975"
+                className="inline-block bg-secondary hover:bg-opacity-90 text-black px-8 py-4 rounded-md text-xl font-medium transition-colors"
               >
-                Call Us Now: (415)-579-3026
+                Call Us Now: (415) 843-7975
               </Link>
             </div>
 
@@ -42,14 +42,14 @@ export default function PropertyListedPage() {
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => handleChoice(true)}
-                  className="flex-1 max-w-xs bg-primary hover:bg-primary/90 text-white py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="flex-1 max-w-xs bg-secondary hover:bg-opacity-90 text-black py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   <span>Yes</span>
                   <ThumbsUp className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleChoice(false)}
-                  className="flex-1 max-w-xs bg-primary hover:bg-primary/90 text-white py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="flex-1 max-w-xs bg-secondary hover:bg-opacity-90 text-black py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   <span>No</span>
                   <ThumbsDown className="w-5 h-5" />

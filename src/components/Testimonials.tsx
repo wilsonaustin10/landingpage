@@ -15,7 +15,7 @@ const testimonials: Testimonial[] = [
   {
     name: "Jason & Mary",
     location: "Dallas, TX",
-    text: "We needed to sell our house fast due to a job relocation. Allied made us a fair cash offer and closed in just 8 days!",
+    text: "We needed to sell our house fast due to a job relocation. Caesar made us a fair cash offer and closed in just 8 days!",
     rating: 5
   },
   {
@@ -27,7 +27,7 @@ const testimonials: Testimonial[] = [
   {
     name: "Sarah Johnson",
     location: "Jacksonville, FL",
-    text: "After trying to sell with a realtor for 6 months, I contacted Allied House Buyers. They closed quickly and even covered all closing costs!",
+    text: "After trying to sell with a realtor for 6 months, I contacted Caesar. They closed quickly and even covered all closing costs!",
     rating: 5
   }
 ];

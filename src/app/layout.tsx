@@ -20,8 +20,10 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&libraries=places&callback=Function.prototype`}
-          strategy="beforeInteractive"
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&libraries=places&v=beta`}
+          strategy="afterInteractive"
+          async
+          defer
           onLoad={() => {
             console.log('Google Maps Places API loaded successfully');
           }}

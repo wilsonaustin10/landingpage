@@ -2,19 +2,5 @@
   "version": 2,
   "framework": "nextjs",
   "buildCommand": "next build",
-  "outputDirectory": ".next",
-  "env": {
-    "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY": "@next_public_google_maps_api_key",
-    "GOOGLE_SHEETS_PRIVATE_KEY": "@google_sheets_private_key",
-    "GOOGLE_SHEETS_CLIENT_EMAIL": "@google_sheets_client_email",
-    "GOOGLE_SHEETS_SPREADSHEET_ID": "@google_sheets_spreadsheet_id",
-    "NEXT_PUBLIC_GA_MEASUREMENT_ID": "@next_public_ga_measurement_id",
-    "NEXT_PUBLIC_FB_PIXEL_ID": "@next_public_fb_pixel_id",
-    "NEXT_PUBLIC_HOTJAR_ID": "@next_public_hotjar_id",
-    "GOHIGHLEVEL_API_KEY": "@gohighlevel_api_key",
-    "ZAPIER_WEBHOOK_URL": "@zapier_webhook_url",
-    "NEXT_PUBLIC_FORM_SUBMISSION_URL": "@next_public_form_submission_url",
-    "NEXT_PUBLIC_PARTIAL_SUBMISSION_URL": "@next_public_partial_submission_url",
-    "NEXT_PUBLIC_SERVICE_AREAS": "@next_public_service_areas"
-  }
+  "outputDirectory": ".next"
 } 

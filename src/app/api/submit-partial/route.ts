@@ -18,6 +18,31 @@ function validatePartialData(data: Partial<LeadFormData>): boolean {
   return true;
 }
 
+// Send data to Zapier webhook
+async function sendToZapier(data: Partial<LeadFormData>) {
+  if (!process.env.ZAPIER_WEBHOOK_URL) {
+    throw new Error('Zapier webhook URL not configured');
+  }
+
+  const response = await fetch(process.env.ZAPIER_WEBHOOK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...data,
+      submissionType: 'partial',
+      timestamp: new Date().toISOString()
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to send to Zapier: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 /**
  * API Route for saving initial lead data (address and phone)
  * Called when user clicks first "Get Cash Offer" button
@@ -56,6 +81,14 @@ export async function POST(request: Request) {
       leadId,
       submissionType: 'partial'
     };
+
+    // Send to Zapier webhook
+    try {
+      await sendToZapier(leadData);
+    } catch (error) {
+      console.error('Failed to send to Zapier:', error);
+      // Continue with Google Sheets submission even if Zapier fails
+    }
 
     const result = await appendLeadToSheet(leadData);
     if (!result.success) {

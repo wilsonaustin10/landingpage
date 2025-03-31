@@ -12,6 +12,25 @@ import { useScriptLoading } from '../context/ScriptLoadingContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
+function GoogleTagManager() {
+  return (
+    <>
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=AW-16509338772"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'AW-16509338772');
+        `}
+      </Script>
+    </>
+  );
+}
+
 function GoogleMapsLoader() {
   const { setGoogleMapsLoaded } = useScriptLoading();
 
@@ -46,6 +65,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ScriptLoadingProvider>
           <FormProvider>
+            <GoogleTagManager />
             <GoogleMapsLoader />
             <Analytics />
             <Header />

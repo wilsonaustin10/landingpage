@@ -1,45 +1,28 @@
-// Add gtag to window object type
-declare global {
-  interface Window {
-    gtag?: (
-      command: 'event' | 'config' | 'js',
-      action: string | Date,
-      params?: {
-        send_to?: string;
-        transaction_id?: string;
-        linker?: {
-          domains: string[];
-        };
-      }
-    ) => void;
-  }
-}
-
 export interface LeadFormData {
   // Address fields (required)
   address: string;
-  streetAddress?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  placeId?: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  placeId: string;
 
   // Contact fields (required)
   phone: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 
   // Property details
-  propertyCondition?: string;
-  timeframe?: string;
-  price?: string;
-  isPropertyListed?: boolean;
+  isPropertyListed: boolean;
+  propertyCondition: string;
+  timeframe: string;
+  price: string;
 
   // Tracking
-  leadId?: string;
-  timestamp?: string;
-  lastUpdated?: string;
+  leadId: string;
+  timestamp: string;
+  lastUpdated: string;
   submissionType?: 'partial' | 'complete';
   consent?: boolean;
 }

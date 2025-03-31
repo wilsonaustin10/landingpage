@@ -42,9 +42,8 @@ export const getAnalyticsConfig = (): AnalyticsConfig => {
 // Basic event tracking without type checking
 export const trackEvent = (eventName: string, properties?: Record<string, unknown>) => {
   try {
-    const w = window as any;
-    if (w?.gtag) {
-      w.gtag('event', eventName, properties);
+    if (typeof window !== 'undefined') {
+      (window as any).gtag?.('event', eventName, properties);
     }
   } catch (error) {
     console.error('Error tracking event:', error);
@@ -83,13 +82,14 @@ const safeGtag = (...args: any[]) => {
 // Conversion tracking for Google Ads
 export const trackConversion = (type: 'partial' | 'full') => {
   try {
-    const w = window as any;
-    if (!w?.gtag) return;
+    if (typeof window === 'undefined') return;
+    const gtag = (window as any).gtag;
+    if (!gtag) return;
 
     const conversionLabel = type === 'partial' ? 'GjdBCMuwqrIaEJSJosA9' : 'QFoaCM6wqrIaEJSJosA9';
-    const leadId = w.sessionStorage?.getItem('leadId');
+    const leadId = window.sessionStorage?.getItem('leadId');
     
-    w.gtag('event', 'conversion', {
+    gtag('event', 'conversion', {
       send_to: `AW-16509338772/${conversionLabel}`,
       transaction_id: leadId || undefined
     });

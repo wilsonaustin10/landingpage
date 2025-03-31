@@ -12,13 +12,29 @@ interface FormErrors {
   address?: string;
   phone?: string;
   submit?: string;
+  consent?: string;
 }
 
 export default function LeadForm() {
-  const [formData, setFormData] = useState<LeadFormData>({
+  const [formData, setFormData] = useState<Partial<LeadFormData>>({
     address: '',
     phone: '',
     consent: false,
+    streetAddress: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    placeId: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    isPropertyListed: false,
+    propertyCondition: '',
+    timeframe: '',
+    price: '',
+    leadId: '',
+    timestamp: new Date().toISOString(),
+    lastUpdated: new Date().toISOString(),
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
@@ -119,15 +135,19 @@ export default function LeadForm() {
     return address.trim().length > 0;
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = () => {
     const newErrors: FormErrors = {};
 
-    if (!validateAddress(formData.address)) {
+    if (!validateAddress(formData.address || '')) {
       newErrors.address = 'Please enter a valid property address';
     }
 
-    if (!validatePhone(formData.phone)) {
+    if (!validatePhone(formData.phone || '')) {
       newErrors.phone = 'Please enter a valid phone number';
+    }
+
+    if (!formData.consent) {
+      newErrors.consent = 'You must agree to the terms';
     }
 
     setErrors(newErrors);

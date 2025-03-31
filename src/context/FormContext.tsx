@@ -30,6 +30,14 @@ const initialState: FormState = {
   isSubmitting: false,
   error: '',
   leadId: '',
+  streetAddress: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  placeId: '',
+  timestamp: new Date().toISOString(),
+  lastUpdated: new Date().toISOString(),
+  isPropertyListed: false,
 };
 
 export function FormProvider({ children }: { children: React.ReactNode }) {

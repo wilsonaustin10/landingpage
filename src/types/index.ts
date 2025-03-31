@@ -1,7 +1,7 @@
 // Add gtag to window object type
 declare global {
   interface Window {
-    gtag: (
+    gtag?: (
       command: 'event' | 'config' | 'js',
       action: string | Date,
       params?: {
@@ -24,24 +24,24 @@ export interface LeadFormData {
   postalCode?: string;
   placeId?: string;
 
-  // Contact information (required)
+  // Contact fields (required)
   phone: string;
-  consent: boolean;
   firstName?: string;
   lastName?: string;
   email?: string;
 
   // Property details
-  isPropertyListed?: boolean;
   propertyCondition?: string;
   timeframe?: string;
   price?: string;
+  isPropertyListed?: boolean;
 
-  // System tracking
+  // Tracking
+  leadId?: string;
   timestamp?: string;
   lastUpdated?: string;
-  leadId?: string;
   submissionType?: 'partial' | 'complete';
+  consent?: boolean;
 }
 
 export interface FormState extends LeadFormData {

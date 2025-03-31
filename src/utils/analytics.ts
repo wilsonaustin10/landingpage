@@ -39,14 +39,15 @@ export const getAnalyticsConfig = (): AnalyticsConfig => {
   };
 };
 
-// Legacy tracking function for compatibility
-export const trackEvent = (eventName: string, params?: Record<string, any>) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', eventName, {
-      ...params,
-      environment: process.env.NEXT_PUBLIC_VERCEL_ENV,
-      timestamp: new Date().toISOString(),
-    });
+// Basic event tracking without type checking
+export const trackEvent = (eventName: string, properties?: Record<string, unknown>) => {
+  try {
+    const w = window as any;
+    if (w?.gtag) {
+      w.gtag('event', eventName, properties);
+    }
+  } catch (error) {
+    console.error('Error tracking event:', error);
   }
 };
 
@@ -72,16 +73,29 @@ export const trackLeadEvent = (
   }
 };
 
+// Type-safe wrapper for gtag
+const safeGtag = (...args: any[]) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag(...args);
+  }
+};
+
 // Conversion tracking for Google Ads
 export const trackConversion = (type: 'partial' | 'full') => {
-  if (typeof window === 'undefined' || !window.gtag) return;
+  try {
+    const w = window as any;
+    if (!w?.gtag) return;
 
-  const conversionLabel = type === 'partial' ? 'GjdBCMuwqrIaEJSJosA9' : 'QFoaCM6wqrIaEJSJosA9';
-  
-  window.gtag('event', 'conversion', {
-    'send_to': `AW-16509338772/${conversionLabel}`,
-    'transaction_id': sessionStorage.getItem('leadId') // Use leadId to prevent double counting
-  });
+    const conversionLabel = type === 'partial' ? 'GjdBCMuwqrIaEJSJosA9' : 'QFoaCM6wqrIaEJSJosA9';
+    const leadId = w.sessionStorage?.getItem('leadId');
+    
+    w.gtag('event', 'conversion', {
+      send_to: `AW-16509338772/${conversionLabel}`,
+      transaction_id: leadId || undefined
+    });
+  } catch (error) {
+    console.error('Error tracking conversion:', error);
+  }
 };
 
 // Declare gtag for TypeScript

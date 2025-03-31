@@ -1,15 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThumbsUp, ThumbsDown, Phone } from 'lucide-react';
 import { useForm } from '../../context/FormContext';
-import { trackEvent } from '../../utils/analytics';
+import { trackEvent, trackConversion } from '../../utils/analytics';
 import Link from 'next/link';
 
 export default function PropertyListedPage() {
   const router = useRouter();
-  const { updateFormData } = useForm();
+  const { updateFormData, formState } = useForm();
+
+  useEffect(() => {
+    // Only track partial conversion if we haven't tracked a full conversion yet
+    if (!sessionStorage.getItem('fullConversionTracked')) {
+      trackConversion('partial');
+      // Store leadId in sessionStorage to prevent double counting
+      if (formState.leadId) {
+        sessionStorage.setItem('leadId', formState.leadId);
+      }
+    }
+  }, [formState.leadId]);
 
   const handleChoice = (isListed: boolean) => {
     updateFormData({ isPropertyListed: isListed });
@@ -30,10 +41,10 @@ export default function PropertyListedPage() {
 
             <div className="mb-12">
               <Link
-                href="tel: (415)-579-3026"
+                href="tel:(929)-499-2303"
                 className="inline-block bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-md text-xl font-medium transition-colors"
               >
-                Call Us Now: (415)-579-3026
+                Call Us Now: (929)-499-2303
               </Link>
             </div>
 

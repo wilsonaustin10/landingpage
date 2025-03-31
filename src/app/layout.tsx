@@ -25,6 +25,13 @@ function GoogleTagManager() {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', 'AW-16509338772');
+
+          // Add conversion linker
+          gtag('config', 'AW-16509338772', {
+            'linker': {
+              'domains': ['fastcashforhomesjr.com']
+            }
+          });
         `}
       </Script>
     </>

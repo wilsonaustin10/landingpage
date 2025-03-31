@@ -1,3 +1,20 @@
+// Add gtag to window object type
+declare global {
+  interface Window {
+    gtag: (
+      command: 'event' | 'config' | 'js',
+      action: string | Date,
+      params?: {
+        send_to?: string;
+        transaction_id?: string;
+        linker?: {
+          domains: string[];
+        };
+      }
+    ) => void;
+  }
+}
+
 export interface LeadFormData {
   // Address fields (required)
   address: string;

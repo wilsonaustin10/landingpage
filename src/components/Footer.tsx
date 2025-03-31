@@ -24,7 +24,7 @@ export default function Footer() {
             </p>
             <div className="space-y-2">
               <a 
-                href="tel: 929)-499-2303"
+                href="tel: (929)-499-2303"
                 className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
               >
                 <Phone className="h-4 w-4" />

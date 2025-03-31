@@ -72,6 +72,18 @@ export const trackLeadEvent = (
   }
 };
 
+// Conversion tracking for Google Ads
+export const trackConversion = (type: 'partial' | 'full') => {
+  if (typeof window === 'undefined' || !window.gtag) return;
+
+  const conversionLabel = type === 'partial' ? 'GjdBCMuwqrIaEJSJosA9' : 'QFoaCM6wqrIaEJSJosA9';
+  
+  window.gtag('event', 'conversion', {
+    'send_to': `AW-16509338772/${conversionLabel}`,
+    'transaction_id': sessionStorage.getItem('leadId') // Use leadId to prevent double counting
+  });
+};
+
 // Declare gtag for TypeScript
 declare global {
   interface Window {

@@ -3,14 +3,21 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Clock, Phone, ArrowRight } from 'lucide-react';
-import { trackEvent } from '../../utils/analytics';
+import { trackEvent, trackConversion } from '../../utils/analytics';
+import { useForm } from '../../context/FormContext';
 
 export default function ThankYouPage() {
   const router = useRouter();
+  const { formState } = useForm();
 
   useEffect(() => {
     trackEvent('thank_you_page_view');
-  }, []);
+    trackConversion('full');
+    sessionStorage.setItem('fullConversionTracked', 'true');
+    if (formState.leadId) {
+      sessionStorage.setItem('leadId', formState.leadId);
+    }
+  }, [formState.leadId]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-20">

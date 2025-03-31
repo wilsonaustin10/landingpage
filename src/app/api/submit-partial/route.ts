@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { appendLeadToSheet } from '@/utils/googleSheets';
 import { headers } from 'next/headers';
 import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
@@ -24,23 +23,34 @@ async function sendToZapier(data: Partial<LeadFormData>) {
     throw new Error('Zapier webhook URL not configured');
   }
 
-  const response = await fetch(process.env.ZAPIER_WEBHOOK_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      ...data,
-      submissionType: 'partial',
-      timestamp: new Date().toISOString()
-    })
-  });
+  try {
+    const response = await fetch(process.env.ZAPIER_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...data,
+        submissionType: 'partial',
+        timestamp: new Date().toISOString()
+      })
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to send to Zapier: ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Zapier webhook error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to send to Zapier: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error in sendToZapier:', error);
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
@@ -52,28 +62,48 @@ export async function POST(request: Request) {
   const leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   try {
+    // Log incoming request
+    console.log('Received partial form submission request');
+
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
     
     // Apply rate limiting
     const rateLimitResult = await rateLimit(ip);
     if (!rateLimitResult.success) {
+      console.log('Rate limit exceeded for IP:', ip);
       return NextResponse.json(
         { error: 'Too many requests', retryAfter: rateLimitResult.retryAfter },
         { status: 429 }
       );
     }
 
-    const data = await request.json();
+    // Parse and validate request data
+    let data;
+    try {
+      data = await request.json();
+      console.log('Received form data:', {
+        hasAddress: !!data.address,
+        hasPhone: !!data.phone,
+        phone: data.phone
+      });
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
     
     if (!validatePartialData(data)) {
+      console.error('Invalid form data:', data);
       return NextResponse.json(
-        { error: 'Invalid partial form data' },
+        { error: 'Invalid partial form data - Missing required fields or invalid format' },
         { status: 400 }
       );
     }
 
-    // Prepare data for sheet with timestamp and tracking
+    // Prepare data with timestamp and tracking
     const leadData: Partial<LeadFormData> = {
       ...data,
       timestamp,
@@ -82,28 +112,35 @@ export async function POST(request: Request) {
       submissionType: 'partial'
     };
 
+    console.log('Prepared lead data:', {
+      leadId,
+      timestamp,
+      submissionType: 'partial'
+    });
+
     // Send to Zapier webhook
     try {
       await sendToZapier(leadData);
+      console.log('Successfully sent to Zapier webhook');
+      
+      return NextResponse.json({ 
+        success: true,
+        leadId
+      });
     } catch (error) {
       console.error('Failed to send to Zapier:', error);
-      // Continue with Google Sheets submission even if Zapier fails
+      throw error;
     }
-
-    const result = await appendLeadToSheet(leadData);
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to save partial data');
-    }
-
-    return NextResponse.json({ 
-      success: true,
-      leadId
-    });
 
   } catch (error) {
     console.error('Error submitting partial form:', error);
+    // Return a specific error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error occurred' },
+      { 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+      },
       { status: 500 }
     );
   }

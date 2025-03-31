@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { appendLeadToSheet } from '@/utils/googleSheets';
 import { headers } from 'next/headers';
 import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
@@ -38,23 +37,34 @@ async function sendToZapier(data: LeadFormData) {
     throw new Error('Zapier webhook URL not configured');
   }
 
-  const response = await fetch(process.env.ZAPIER_WEBHOOK_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      ...data,
-      submissionType: 'complete',
-      timestamp: new Date().toISOString()
-    })
-  });
+  try {
+    const response = await fetch(process.env.ZAPIER_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...data,
+        submissionType: 'complete',
+        timestamp: new Date().toISOString()
+      })
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to send to Zapier: ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Zapier webhook error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to send to Zapier: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error in sendToZapier:', error);
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
@@ -63,6 +73,9 @@ async function sendToZapier(data: LeadFormData) {
  */
 export async function POST(request: Request) {
   try {
+    // Log incoming request
+    console.log('Received complete form submission request');
+
     // 1. Rate limiting check
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
@@ -70,6 +83,7 @@ export async function POST(request: Request) {
     
     const rateLimitResult = await rateLimit(ip);
     if (!rateLimitResult.success) {
+      console.log('Rate limit exceeded for IP:', ip);
       return NextResponse.json(
         { error: 'Too many requests', retryAfter: rateLimitResult.retryAfter },
         { status: 429 }
@@ -77,10 +91,25 @@ export async function POST(request: Request) {
     }
 
     // 2. Parse and validate request data
-    const data = await request.json();
-    if (!validateFormData(data)) {
+    let data;
+    try {
+      data = await request.json();
+      console.log('Received form data:', {
+        hasRequiredFields: true,
+        leadId: data.leadId
+      });
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError);
       return NextResponse.json(
-        { error: 'Invalid form data' },
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    if (!validateFormData(data)) {
+      console.error('Invalid form data:', data);
+      return NextResponse.json(
+        { error: 'Invalid form data - Missing required fields or invalid format' },
         { status: 400 }
       );
     }
@@ -95,26 +124,25 @@ export async function POST(request: Request) {
     // 4. Send to Zapier webhook
     try {
       await sendToZapier(formData);
+      console.log('Successfully sent to Zapier webhook');
+      
+      return NextResponse.json({ 
+        success: true,
+        leadId: formData.leadId
+      });
     } catch (error) {
       console.error('Failed to send to Zapier:', error);
-      // Continue with Google Sheets submission even if Zapier fails
+      throw error;
     }
-
-    // 5. Append to Google Sheet using shared utility
-    const result = await appendLeadToSheet(formData);
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to save form data');
-    }
-
-    return NextResponse.json({ 
-      success: true,
-      leadId: formData.leadId
-    });
 
   } catch (error) {
     console.error('Error submitting form:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error occurred' },
+      { 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+      },
       { status: 500 }
     );
   }

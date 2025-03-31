@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center">
               <Image
-                src="/XVRlogo.png"
+                src="/XVR.png"
                 alt="XVR Buys Houses"
                 width={600}
                 height={160}

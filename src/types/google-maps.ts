@@ -1,8 +1,21 @@
 declare global {
   namespace google.maps.places {
+    interface ComponentRestrictions {
+      country: string | string[] | null;
+    }
+
+    interface PlaceAutocompleteElementOptions {
+      types?: string[] | null;
+      componentRestrictions?: ComponentRestrictions | null;
+    }
+
     interface PlaceAutocompleteElement extends HTMLElement {
       getPlace(): google.maps.places.Place;
       value: string;
+    }
+
+    interface PlaceAutocompleteElementConstructor {
+      new(options?: PlaceAutocompleteElementOptions): PlaceAutocompleteElement;
     }
 
     interface Place {

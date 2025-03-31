@@ -34,7 +34,10 @@ export default function AddressInput({
 
     try {
       // Create and configure the PlaceAutocompleteElement
-      const placeElement = new window.google.maps.places.PlaceAutocompleteElement();
+      const placeElement = new window.google.maps.places.PlaceAutocompleteElement({
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
       placeElementRef.current = placeElement;
 
       // Configure the element

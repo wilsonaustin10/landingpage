@@ -1,12 +1,12 @@
-import { GA4Config } from '@analytics/google-analytics4';
-
-interface EnvironmentConfig {
+interface AnalyticsConfig {
   measurementId: string;
   debug: boolean;
   cookieDomain: string;
+  anonymizeIp?: boolean;
+  customMap?: Record<string, string>;
 }
 
-const analyticsConfig: Record<string, EnvironmentConfig> = {
+const analyticsConfig: Record<string, AnalyticsConfig> = {
   development: {
     measurementId: process.env.NEXT_PUBLIC_GA_TRACKING_ID || '',
     debug: true,
@@ -24,33 +24,18 @@ const analyticsConfig: Record<string, EnvironmentConfig> = {
   }
 };
 
-export const getAnalyticsConfig = (): GA4Config => {
+export const getAnalyticsConfig = (): AnalyticsConfig => {
   const environment = process.env.NEXT_PUBLIC_VERCEL_ENV || 'development';
   const config = analyticsConfig[environment];
 
   return {
-    measurementId: config.measurementId,
-    debug: config.debug,
-    cookieDomain: config.cookieDomain,
-    customDimensions: {
-      environment,
-    },
-    customMetrics: {
-      loadTime: 'metric1',
-      userTiming: 'metric2',
-    },
+    ...config,
     anonymizeIp: true,
-    respectDNT: true,
-    // Track form interactions
-    events: {
-      formStart: true,
-      formComplete: true,
-      formAbandoned: true,
-    },
-    // Enhanced measurement
-    scrollTracking: true,
-    mediaTracking: true,
-    outboundLinks: true,
+    customMap: {
+      dimension1: 'environment',
+      metric1: 'loadTime',
+      metric2: 'userTiming',
+    }
   };
 };
 

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { appendLeadToSheet } from '@/utils/googleSheets';
 import { headers } from 'next/headers';
 import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
+import { updateLeadWithFullDetails } from '@/utils/ghlApi';
 
 // Validate complete form data
 function validateFormData(data: Partial<LeadFormData>): data is LeadFormData {
@@ -14,7 +14,7 @@ function validateFormData(data: Partial<LeadFormData>): data is LeadFormData {
   const requiredFields: (keyof LeadFormData)[] = [
     'address', 'phone', 'firstName', 'lastName', 
     'email', 'propertyCondition', 'timeframe', 'price',
-    'leadId'
+    'leadId' // This will now be the GHL contact ID
   ];
   
   for (const field of requiredFields) {
@@ -41,7 +41,6 @@ export async function POST(request: Request) {
     // 1. Rate limiting check
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
-    const timestamp = new Date().toISOString();
     
     const rateLimitResult = await rateLimit(ip);
     if (!rateLimitResult.success) {
@@ -60,22 +59,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Prepare data with tracking information
-    const formData: LeadFormData = {
-      ...data,
-      timestamp: data.timestamp || timestamp,
-      lastUpdated: timestamp
-    };
-
-    // 4. Append to Google Sheet using shared utility
-    const result = await appendLeadToSheet(formData);
+    // 3. Update contact in GHL with full details
+    const result = await updateLeadWithFullDetails(data);
     if (!result.success) {
-      throw new Error(result.error || 'Failed to save form data');
+      throw new Error(result.error || 'Failed to update contact in GHL');
     }
 
     return NextResponse.json({ 
       success: true,
-      leadId: formData.leadId
+      leadId: result.contactId
     });
 
   } catch (error) {

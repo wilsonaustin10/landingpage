@@ -63,57 +63,61 @@ export default function AddressInput({
       
       placeElement.value = defaultValue || formState.address || '';
 
-      placeElement.addEventListener('gmp-placeselect', async (event) => {
+      placeElement.addEventListener('gmp-placeselect', async (event: any) => {
         console.log('gmp-placeselect event fired:', event);
         
-        const placeDetail = (event as CustomEvent<{ place: google.maps.places.Place }>).detail;
-        if (!placeDetail || !placeDetail.place) {
-            console.error('Place selection event missing detail or place data:', event);
+        const place = event.place as google.maps.places.Place | undefined;
+
+        if (!place) {
+            console.error('Place selection event missing place data:', event);
             setLocalError('Could not retrieve address details from selection.');
             return;
         }
         
-        const place = placeDetail.place;
-        
-        await place.fetchFields({ fields: ['address_components', 'formatted_address', 'place_id'] });
-        
-        const placeJson = place.toJSON();
-        if (!placeJson.formatted_address) {
-          setLocalError('Invalid address selected');
-          return;
-        }
-
-        const addressData: AddressData = {
-          formattedAddress: placeJson.formatted_address,
-          placeId: placeJson.place_id
-        };
-
-        placeJson.address_components?.forEach(component => {
-          const type = component.types[0];
-          switch (type) {
-            case 'street_number': addressData.streetNumber = component.long_name; break;
-            case 'route': addressData.street = component.long_name; break;
-            case 'locality': addressData.city = component.long_name; break;
-            case 'administrative_area_level_1': addressData.state = component.short_name; break;
-            case 'postal_code': addressData.postalCode = component.long_name; break;
+        try {
+          await place.fetchFields({ fields: ['addressComponents', 'formattedAddress', 'id'] });
+          
+          const placeJson: any = place.toJSON();
+          if (!placeJson.formattedAddress) {
+            setLocalError('Invalid address selected');
+            return;
           }
-        });
 
-        const addressUpdate = {
-          address: addressData.formattedAddress,
-          streetAddress: `${addressData.streetNumber || ''} ${addressData.street || ''}`.trim(),
-          city: addressData.city || '',
-          state: addressData.state || '',
-          postalCode: addressData.postalCode || '',
-          placeId: addressData.placeId || ''
-        };
-        
-        setSelectedAddress(addressData);
-        updateFormData(addressUpdate);
-        setLocalError('');
-        
-        if (onAddressSelect) {
-          onAddressSelect(addressData);
+          const addressData: AddressData = {
+            formattedAddress: placeJson.formattedAddress,
+            placeId: placeJson.id
+          };
+
+          placeJson.addressComponents?.forEach((component: any) => {
+            const type = component.types[0];
+            switch (type) {
+              case 'street_number': addressData.streetNumber = component.long_name; break;
+              case 'route': addressData.street = component.long_name; break;
+              case 'locality': addressData.city = component.long_name; break;
+              case 'administrative_area_level_1': addressData.state = component.short_name; break;
+              case 'postal_code': addressData.postalCode = component.long_name; break;
+            }
+          });
+
+          const addressUpdate = {
+            address: addressData.formattedAddress,
+            streetAddress: `${addressData.streetNumber || ''} ${addressData.street || ''}`.trim(),
+            city: addressData.city || '',
+            state: addressData.state || '',
+            postalCode: addressData.postalCode || '',
+            placeId: addressData.placeId || ''
+          };
+          
+          setSelectedAddress(addressData);
+          updateFormData(addressUpdate);
+          setLocalError('');
+          
+          if (onAddressSelect) {
+            onAddressSelect(addressData);
+          }
+        } catch (error) {
+          console.error('Error retrieving place details:', error);
+          setLocalError(error instanceof Error ? error.message : 'Failed to retrieve place details');
         }
       });
 

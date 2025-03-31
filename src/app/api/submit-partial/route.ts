@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { appendLeadToSheet } from '@/utils/googleSheets';
 import { headers } from 'next/headers';
 import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
+import { createPartialLead } from '@/utils/ghlApi';
 
 // Validate partial form data (only address and phone)
 function validatePartialData(data: Partial<LeadFormData>): boolean {
@@ -23,9 +23,6 @@ function validatePartialData(data: Partial<LeadFormData>): boolean {
  * Called when user clicks first "Get Cash Offer" button
  */
 export async function POST(request: Request) {
-  const timestamp = new Date().toISOString();
-  const leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
   try {
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
@@ -48,23 +45,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Prepare data for sheet with timestamp and tracking
-    const leadData: Partial<LeadFormData> = {
-      ...data,
-      timestamp,
-      lastUpdated: timestamp,
-      leadId,
-      submissionType: 'partial'
-    };
-
-    const result = await appendLeadToSheet(leadData);
+    // Create contact in GHL
+    const result = await createPartialLead(data);
     if (!result.success) {
-      throw new Error(result.error || 'Failed to save partial data');
+      throw new Error(result.error || 'Failed to create contact in GHL');
     }
 
     return NextResponse.json({ 
       success: true,
-      leadId
+      leadId: result.contactId // Use the GHL contact ID as our leadId
     });
 
   } catch (error) {

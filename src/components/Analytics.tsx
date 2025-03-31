@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getAnalyticsConfig } from '@/utils/analytics';
+import { getAnalyticsConfig } from '../utils/analytics';
 
 export default function Analytics() {
   useEffect(() => {

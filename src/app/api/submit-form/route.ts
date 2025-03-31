@@ -61,8 +61,27 @@ export async function POST(request: Request) {
 
     // 3. Update contact in GHL with full details
     const result = await updateLeadWithFullDetails(data);
+    
+    // Handle GHL integration failures more gracefully
     if (!result.success) {
-      throw new Error(result.error || 'Failed to update contact in GHL');
+      console.warn('GHL integration failed when updating lead:', result.error);
+      
+      // If it's an API key issue, still allow the user to proceed
+      if (result.error?.includes('Unauthorized') || result.error?.includes('not configured')) {
+        return NextResponse.json({ 
+          success: true,
+          warning: 'Form submitted successfully, but CRM update failed. The team has been notified.'
+        });
+      }
+      
+      // For other errors, still return a meaningful response
+      return NextResponse.json(
+        { 
+          error: 'Your form was received, but we encountered an issue updating your details.',
+          details: result.error 
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ 

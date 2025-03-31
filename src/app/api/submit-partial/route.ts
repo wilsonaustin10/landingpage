@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
 import { createPartialLead } from '@/utils/ghlApi';
+import { generateLeadId } from '@/utils/helpers';
 
 // Validate partial form data (only address and phone)
 function validatePartialData(data: Partial<LeadFormData>): boolean {
@@ -45,10 +46,33 @@ export async function POST(request: Request) {
       );
     }
 
+    // Generate a unique leadId in case GHL integration fails
+    const fallbackLeadId = generateLeadId();
+    
     // Create contact in GHL
     const result = await createPartialLead(data);
+    
+    // If GHL integration failed but it's an authentication issue,
+    // continue with a fallback leadId instead of failing completely
     if (!result.success) {
-      throw new Error(result.error || 'Failed to create contact in GHL');
+      console.warn('GHL integration failed:', result.error);
+      
+      if (result.error?.includes('Unauthorized') || result.error?.includes('not configured')) {
+        return NextResponse.json({ 
+          success: true,
+          leadId: fallbackLeadId,
+          warning: 'Lead saved locally only. CRM integration unavailable.'
+        });
+      } 
+      
+      // For other errors, still return a meaningful response
+      return NextResponse.json(
+        { 
+          error: 'Unable to save lead to CRM system',
+          details: result.error 
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ 

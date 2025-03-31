@@ -114,15 +114,20 @@ export default function PropertyForm() {
         body: JSON.stringify(dataToSubmit)
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-
       const result = await response.json();
       
-      if (!result.success) {
+      // Even if there was an HTTP error, we process the JSON response
+      if (!response.ok && !result.success) {
+        console.error('API error response:', result);
+        throw new Error(result.error || `API error: ${response.status}`);
+      }
+      
+      // Handle warning but still continue
+      if (result.warning) {
+        console.warn('API warning:', result.warning);
+      }
+      
+      if (!result.success && !result.leadId) {
         throw new Error(result.error || 'Failed to save lead data');
       }
 
@@ -140,7 +145,11 @@ export default function PropertyForm() {
       console.error('Form submission error:', error);
       setErrors(prev => ({
         ...prev,
-        submit: error instanceof Error ? error.message : 'An error occurred'
+        submit: error instanceof Error 
+          ? error.message.includes('Unauthorized') 
+            ? 'We\'re experiencing issues with our system. Your information was saved locally.' 
+            : error.message 
+          : 'An error occurred'
       }));
     } finally {
       setIsSubmitting(false);

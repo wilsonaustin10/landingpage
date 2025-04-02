@@ -86,6 +86,13 @@ export const trackConversion = (type: 'partial' | 'full') => {
     const gtag = (window as any).gtag;
     if (!gtag) return;
 
+    // Check if we've already tracked this conversion type
+    const storageKey = type === 'partial' ? 'partialConversionTracked' : 'fullConversionTracked';
+    if (window.sessionStorage?.getItem(storageKey)) {
+      console.log(`${type} conversion already tracked, skipping duplicate tracking`);
+      return;
+    }
+
     const conversionLabel = type === 'partial' ? 'GjdBCMuwqrIaEJSJosA9' : 'QFoaCM6wqrIaEJSJosA9';
     const leadId = window.sessionStorage?.getItem('leadId');
     
@@ -93,6 +100,9 @@ export const trackConversion = (type: 'partial' | 'full') => {
       send_to: `AW-16509338772/${conversionLabel}`,
       transaction_id: leadId || undefined
     });
+    
+    // Mark this conversion as tracked
+    window.sessionStorage?.setItem(storageKey, 'true');
   } catch (error) {
     console.error('Error tracking conversion:', error);
   }

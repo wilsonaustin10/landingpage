@@ -15,6 +15,7 @@ const inter = Inter({ subsets: ['latin'] });
 function GoogleTagManager() {
   return (
     <>
+      {/* Google tag (gtag.js) */}
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=AW-16509338772"
         strategy="afterInteractive"
@@ -25,13 +26,6 @@ function GoogleTagManager() {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', 'AW-16509338772');
-
-          // Add conversion linker
-          gtag('config', 'AW-16509338772', {
-            'linker': {
-              'domains': ['fastcashforhomesjr.com']
-            }
-          });
         `}
       </Script>
     </>

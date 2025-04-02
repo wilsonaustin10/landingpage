@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from '../context/FormContext';
 import AddressInput from './AddressInput';
@@ -24,6 +24,7 @@ export default function PropertyForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showConversion, setShowConversion] = useState(false);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     const hasTrackedPartial = sessionStorage.getItem('partialConversionTracked');
@@ -44,14 +45,23 @@ export default function PropertyForm() {
   };
 
   const handleAddressSelect = (addressData: AddressData) => {
+    console.log('Address selected, advancing to phone step:', addressData);
+    
     trackEvent('property_address_selected', { 
       address: addressData.formattedAddress,
       placeId: addressData.placeId 
     });
+    
     updateFormData(addressData);
     setErrors(prev => ({ ...prev, address: undefined }));
     setTouched(prev => ({ ...prev, address: true }));
     setStep(2);
+    
+    setTimeout(() => {
+      if (phoneInputRef.current) {
+        phoneInputRef.current.focus();
+      }
+    }, 150);
   };
 
   const formatPhoneNumber = (value: string) => {
@@ -65,7 +75,6 @@ export default function PropertyForm() {
     const formatted = formatPhoneNumber(e.target.value);
     updateFormData({ phone: formatted });
     
-    // Validate phone if touched
     if (touched.phone) {
       setErrors(prev => ({
         ...prev,
@@ -99,7 +108,6 @@ export default function PropertyForm() {
     e.preventDefault();
     if (isSubmitting) return;
 
-    // Mark all fields as touched on submit attempt
     setTouched({ address: true, phone: true });
 
     if (!validateForm()) {
@@ -126,13 +134,11 @@ export default function PropertyForm() {
 
       const result = await response.json();
       
-      // Even if there was an HTTP error, we process the JSON response
       if (!response.ok && !result.success) {
         console.error('API error response:', result);
         throw new Error(result.error || `API error: ${response.status}`);
       }
       
-      // Handle warning but still continue
       if (result.warning) {
         console.warn('API warning:', result.warning);
       }
@@ -141,13 +147,20 @@ export default function PropertyForm() {
         throw new Error(result.error || 'Failed to save lead data');
       }
 
-      // Store leadId in form state for later use
       updateFormData({ leadId: result.leadId });
 
       trackEvent('form_submitted', { 
         address: formState.address,
         hasPhone: !!formState.phone
       });
+
+      if (window.gtag) {
+        window.gtag('event', 'conversion', {
+          'send_to': 'AW-16509338772/GjdBCMuwqrIaEJSJosA9', 
+          'value': 1.0,
+          'currency': 'USD'
+        });
+      }
 
       router.push('/property-listed');
 
@@ -171,11 +184,13 @@ export default function PropertyForm() {
       {showConversion && (
         <Script id="property-form-conversion" strategy="afterInteractive">
           {`
-            gtag('event', 'conversion', {
-              'send_to': 'AW-16509338772/GjdBCMuwqrIaEJSJosA9',
-              'value': 1.0,
-              'currency': 'USD'
-            });
+            if (typeof gtag === 'function') {
+              gtag('event', 'conversion', {
+                'send_to': 'AW-16509338772/GjdBCMuwqrIaEJSJosA9',
+                'value': 1.0,
+                'currency': 'USD'
+              });
+            }
           `}
         </Script>
       )}
@@ -202,6 +217,7 @@ export default function PropertyForm() {
             <h2 className="text-xl font-semibold text-gray-800">Enter Your Phone Number</h2>
             <div className="space-y-1">
               <input
+                ref={phoneInputRef}
                 type="tel"
                 placeholder="(555) 555-5555"
                 className={`w-full px-4 py-3 text-lg border rounded-lg transition-colors

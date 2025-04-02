@@ -21,8 +21,8 @@ export default function AddressInput({
   error: externalError,
   readOnly = false
 }: AddressInputProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const placeElementRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AddressData | null>(null);
   const [localError, setLocalError] = useState<string>('');
@@ -30,22 +30,19 @@ export default function AddressInput({
   const { isGoogleMapsLoaded } = useScriptLoading();
 
   useEffect(() => {
-    if (readOnly || !containerRef.current || !isGoogleMapsLoaded) {
-      if (isGoogleMapsLoaded && !containerRef.current) {
-         console.error("AddressInput container ref is not available.");
-      }
+    if (readOnly || !inputRef.current || !isGoogleMapsLoaded) {
       setIsInitializing(false);
       return;
     }
 
-    if (!window.google?.maps?.places?.PlaceAutocompleteElement) {
-      console.warn('PlaceAutocompleteElement object not found even after script load signal.');
+    if (!window.google?.maps?.places) {
+      console.warn('Google Maps Places API not found even after script load signal.');
       setLocalError('Address lookup component failed to load.');
       setIsInitializing(false);
       return;
     }
 
-    if (placeElementRef.current || isInitializing) {
+    if (autocompleteRef.current || isInitializing) {
       return;
     }
 
@@ -53,99 +50,92 @@ export default function AddressInput({
     setLocalError('');
 
     try {
-      const placeElement = new window.google.maps.places.PlaceAutocompleteElement({
+      // Use the standard Autocomplete instead of PlaceAutocompleteElement
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: ['address'],
         componentRestrictions: { country: 'us' }
       });
-
-      placeElement.setAttribute('placeholder', 'Enter your property address');
-      placeElement.setAttribute('class', `w-full px-4 py-3 text-lg outline-none ${localError ? 'text-red-600' : 'text-gray-900'}`);
       
-      placeElement.value = defaultValue || formState.address || '';
-
-      placeElement.addEventListener('gmp-placeselect', async (event: any) => {
-        console.log('gmp-placeselect event fired:', event);
+      // Set reference for cleanup
+      autocompleteRef.current = autocomplete;
+      
+      // Add place_changed event listener
+      autocomplete.addListener('place_changed', () => {
+        console.log('Place changed event fired');
         
-        const place = event.place as google.maps.places.Place | undefined;
-
-        if (!place) {
-            console.error('Place selection event missing place data:', event);
-            setLocalError('Could not retrieve address details from selection.');
-            return;
+        const place = autocomplete.getPlace();
+        if (!place.geometry || !place.formatted_address) {
+          console.error('Invalid place selected:', place);
+          setLocalError('Please select a valid address from the dropdown.');
+          return;
         }
         
-        try {
-          await place.fetchFields({ fields: ['addressComponents', 'formattedAddress', 'id'] });
-          
-          const placeJson: any = place.toJSON();
-          if (!placeJson.formattedAddress) {
-            setLocalError('Invalid address selected');
-            return;
-          }
-
-          const addressData: AddressData = {
-            formattedAddress: placeJson.formattedAddress,
-            placeId: placeJson.id
-          };
-
-          placeJson.addressComponents?.forEach((component: any) => {
-            const type = component.types[0];
-            switch (type) {
-              case 'street_number': addressData.streetNumber = component.long_name; break;
-              case 'route': addressData.street = component.long_name; break;
-              case 'locality': addressData.city = component.long_name; break;
-              case 'administrative_area_level_1': addressData.state = component.short_name; break;
-              case 'postal_code': addressData.postalCode = component.long_name; break;
+        console.log('Valid place selected:', place);
+        
+        const addressData: AddressData = {
+          formattedAddress: place.formatted_address,
+          placeId: place.place_id || ''
+        };
+        
+        if (place.address_components) {
+          place.address_components.forEach((component) => {
+            const types = component.types;
+            if (types.includes('street_number')) {
+              addressData.streetNumber = component.long_name;
+            } else if (types.includes('route')) {
+              addressData.street = component.long_name;
+            } else if (types.includes('locality')) {
+              addressData.city = component.long_name;
+            } else if (types.includes('administrative_area_level_1')) {
+              addressData.state = component.short_name;
+            } else if (types.includes('postal_code')) {
+              addressData.postalCode = component.long_name;
             }
           });
-
-          const addressUpdate = {
-            address: addressData.formattedAddress,
-            streetAddress: `${addressData.streetNumber || ''} ${addressData.street || ''}`.trim(),
-            city: addressData.city || '',
-            state: addressData.state || '',
-            postalCode: addressData.postalCode || '',
-            placeId: addressData.placeId || ''
-          };
-          
-          setSelectedAddress(addressData);
-          updateFormData(addressUpdate);
-          setLocalError('');
-          
-          if (onAddressSelect) {
+        }
+        
+        const addressUpdate = {
+          address: addressData.formattedAddress,
+          streetAddress: `${addressData.streetNumber || ''} ${addressData.street || ''}`.trim(),
+          city: addressData.city || '',
+          state: addressData.state || '',
+          postalCode: addressData.postalCode || '',
+          placeId: addressData.placeId || ''
+        };
+        
+        console.log('Updating form data with address:', addressUpdate);
+        
+        setSelectedAddress(addressData);
+        updateFormData(addressUpdate);
+        setLocalError('');
+        
+        console.log('Calling onAddressSelect with:', addressData);
+        if (onAddressSelect) {
+          // Small timeout to ensure the state updates first
+          setTimeout(() => {
             onAddressSelect(addressData);
-          }
-        } catch (error) {
-          console.error('Error retrieving place details:', error);
-          setLocalError(error instanceof Error ? error.message : 'Failed to retrieve place details');
+          }, 50);
         }
       });
-
-      containerRef.current.innerHTML = '';
-      containerRef.current.appendChild(placeElement);
-      placeElementRef.current = placeElement;
-
+      
     } catch (error) {
-      console.error('Error initializing Places Autocomplete:', error);
+      console.error('Error initializing Google Places Autocomplete:', error);
       setLocalError(error instanceof Error ? error.message : 'Failed to initialize address lookup');
     } finally {
       setIsInitializing(false);
     }
 
     return () => {
-      if (placeElementRef.current && containerRef.current?.contains(placeElementRef.current)) {
-        try {
-            containerRef.current.removeChild(placeElementRef.current);
-        } catch (e) {
-            console.error("Error during PlaceAutocompleteElement cleanup:", e);
-        }
+      if (autocompleteRef.current) {
+        // Clean up event listeners
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
       }
-      placeElementRef.current = null;
     };
-  }, [isGoogleMapsLoaded, readOnly, defaultValue, formState.address, onAddressSelect, updateFormData, isInitializing]);
+  }, [isGoogleMapsLoaded, readOnly, onAddressSelect, updateFormData]);
 
   const error = externalError || localError || errors?.address;
-  const isLoading = !isGoogleMapsLoaded || isInitializing;
+  const isLoading = !isGoogleMapsLoaded;
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -155,17 +145,19 @@ export default function AddressInput({
             {formState.address}
           </div>
         ) : (
-          <div ref={containerRef} id="address-input-container" className="relative min-h-[50px]">
+          <div className="relative min-h-[50px]">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Enter your property address"
+              defaultValue={defaultValue || formState.address || ''}
+              className={`w-full px-4 py-3 text-lg border rounded-lg ${error ? 'border-red-500' : 'border-gray-300'}`}
+              disabled={isLoading}
+            />
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
-                 <input
-                   type="text"
-                   placeholder={!isGoogleMapsLoaded ? "Waiting for map service..." : "Initializing address lookup..."}
-                   disabled
-                   className="w-full px-4 py-3 text-lg border rounded-lg border-gray-300 bg-gray-100 opacity-50 pointer-events-none"
-                 />
-                 <Loader2 className="absolute h-6 w-6 animate-spin text-primary" />
-               </div>
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
             )}
           </div>
         )}

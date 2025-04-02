@@ -9,6 +9,7 @@ import Script from 'next/script';
 import Analytics from '../components/Analytics';
 import { ScriptLoadingProvider } from '../context/ScriptLoadingContext';
 import { useScriptLoading } from '../context/ScriptLoadingContext';
+import React from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -37,12 +38,10 @@ function GoogleMapsLoader() {
 
   return (
     <Script
-      src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&libraries=places&v=beta`}
+      src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&libraries=places`}
       strategy="afterInteractive"
-      async
-      defer
       onLoad={() => {
-        console.log('Google Maps Places API loaded successfully (via Script tag)');
+        console.log('Google Maps script tag loaded and ready.');
         setGoogleMapsLoaded(true);
       }}
       onError={(e) => {

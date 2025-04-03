@@ -6,12 +6,18 @@ import { FormProvider } from '../context/FormContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Script from 'next/script';
-import Analytics from '../components/Analytics';
 import { ScriptLoadingProvider } from '../context/ScriptLoadingContext';
 import { useScriptLoading } from '../context/ScriptLoadingContext';
 import React from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
+
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
 
 function GoogleMapsLoader() {
   const { setGoogleMapsLoaded } = useScriptLoading();
@@ -40,24 +46,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Load Google Tag Manager first */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-16509338772"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
+          strategy="beforeInteractive"
+          onLoad={() => {
+            console.log('Google Tag Manager loaded');
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-16509338772');
-          `}
-        </Script>
+            window.gtag = function(...args) {
+              window.dataLayer.push(args);
+            };
+            window.gtag('js', new Date());
+            window.gtag('config', 'AW-16509338772');
+          }}
+        />
       </head>
       <body className={inter.className}>
         <ScriptLoadingProvider>
           <FormProvider>
             <GoogleMapsLoader />
-            <Analytics />
             <Header />
             <main className="flex-grow">
               {children}

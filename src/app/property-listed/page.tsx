@@ -4,27 +4,41 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThumbsUp, ThumbsDown, Phone } from 'lucide-react';
 import { useForm } from '../../context/FormContext';
-import { trackEvent, trackConversion } from '../../utils/analytics';
 import Link from 'next/link';
+
+declare global {
+  interface Window {
+    gtag: (...args: any[]) => void;
+  }
+}
 
 export default function PropertyListedPage() {
   const router = useRouter();
   const { updateFormData, formState } = useForm();
 
   useEffect(() => {
-    // Only track partial conversion if we haven't tracked a full conversion yet
-    if (!sessionStorage.getItem('fullConversionTracked')) {
-      trackConversion('partial');
-      // Store leadId in sessionStorage to prevent double counting
+    // Only track conversion if we haven't tracked it yet in this session
+    const conversionTracked = sessionStorage.getItem('partialConversionTracked');
+    if (!conversionTracked && typeof window !== 'undefined' && window.gtag) {
+      // Track the Google Ads conversion
+      window.gtag('event', 'conversion', {
+        'send_to': 'AW-16509338772/GjdBCMuwqrIaEJSJosA9',
+        'value': 1.0,
+        'currency': 'USD'
+      });
+
+      // Store leadId and mark conversion as tracked
       if (formState.leadId) {
         sessionStorage.setItem('leadId', formState.leadId);
       }
+      sessionStorage.setItem('partialConversionTracked', 'true');
+      
+      console.log('Partial conversion tracked successfully');
     }
   }, [formState.leadId]);
 
   const handleChoice = (isListed: boolean) => {
     updateFormData({ isPropertyListed: isListed });
-    trackEvent('property_listed_response', { isListed });
     router.push('/timeline');
   };
 

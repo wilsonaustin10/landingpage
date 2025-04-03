@@ -79,38 +79,39 @@ const safeGtag = (...args: any[]) => {
   }
 };
 
-// Conversion tracking for Google Ads
-export const trackConversion = (type: 'partial' | 'full') => {
-  try {
-    if (typeof window === 'undefined') return;
-    const gtag = (window as any).gtag;
-    if (!gtag) return;
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
 
-    // Check if we've already tracked this conversion type
-    const storageKey = type === 'partial' ? 'partialConversionTracked' : 'fullConversionTracked';
-    if (window.sessionStorage?.getItem(storageKey)) {
-      console.log(`${type} conversion already tracked, skipping duplicate tracking`);
-      return;
-    }
+// Conversion IDs for different actions
+export const CONVERSION_IDS = {
+  FORM_START: 'AW-16509338772/form_start',
+  FORM_COMPLETE: 'AW-16509338772/form_complete',
+  PHONE_CALL: 'AW-16509338772/phone_call',
+};
 
-    const conversionLabel = type === 'partial' ? 'GjdBCMuwqrIaEJSJosA9' : 'QFoaCM6wqrIaEJSJosA9';
-    const leadId = window.sessionStorage?.getItem('leadId');
-    
-    gtag('event', 'conversion', {
-      send_to: `AW-16509338772/${conversionLabel}`,
-      transaction_id: leadId || undefined
+export const trackConversion = (conversionId: string, value?: number) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'conversion', {
+      send_to: conversionId,
+      value: value,
+      currency: 'USD',
     });
-    
-    // Mark this conversion as tracked
-    window.sessionStorage?.setItem(storageKey, 'true');
-  } catch (error) {
-    console.error('Error tracking conversion:', error);
   }
 };
 
-// Declare gtag for TypeScript
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-} 
+// Utility functions for specific conversion events
+export const trackFormStart = () => {
+  trackConversion(CONVERSION_IDS.FORM_START);
+};
+
+export const trackFormComplete = (value?: number) => {
+  trackConversion(CONVERSION_IDS.FORM_COMPLETE, value);
+};
+
+export const trackPhoneCall = () => {
+  trackConversion(CONVERSION_IDS.PHONE_CALL);
+}; 

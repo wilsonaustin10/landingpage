@@ -1,10 +1,14 @@
 import { LeadFormData } from '@/types';
 
+// Add explicit logging for the API key *before* using it
+console.log('[ghlApi] Checking GOHIGHLEVEL_API_KEY:', process.env.GOHIGHLEVEL_API_KEY ? `Key found (length: ${process.env.GOHIGHLEVEL_API_KEY.length})` : 'Key NOT found');
+
 const GHL_API_KEY = process.env.GOHIGHLEVEL_API_KEY;
 const GHL_API_BASE_URL = process.env.NEXT_PUBLIC_GHL_API_BASE_URL || 'https://rest.gohighlevel.com/v1';
 
 // Check if API key exists but don't throw an error to allow graceful fallback
 const isApiConfigured = !!GHL_API_KEY;
+console.log('[ghlApi] isApiConfigured status:', isApiConfigured);
 
 interface GHLResponse {
   success: boolean;

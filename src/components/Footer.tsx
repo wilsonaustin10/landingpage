@@ -45,7 +45,7 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/how-it-works" className="text-white/80 hover:text-white transition-colors">
+                <Link href="/#how-it-works" className="text-white/80 hover:text-white transition-colors">
                   How It Works
                 </Link>
               </li>
@@ -55,7 +55,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/testimonials" className="text-white/80 hover:text-white transition-colors">
+                <Link href="/#testimonials" className="text-white/80 hover:text-white transition-colors">
                   Testimonials
                 </Link>
               </li>
@@ -64,12 +64,17 @@ export default function Footer() {
 
           {/* Service Areas */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Service Areas</h3>
+            <h3 className="text-lg font-semibold mb-4">Specializing In</h3>
             <ul className="space-y-2">
-              <li className="text-white/80">Texas</li>
-              <li className="text-white/80">Florida</li>
-              <li className="text-white/80">Ohio</li>
-              <li className="text-white/80">North Carolina</li>
+              <li className="text-white/80">Pre-Foreclosure</li>
+              <li className="text-white/80">Probate</li>
+              <li className="text-white/80">Storm Damage</li>
+              <li className="text-white/80">Tax Liens</li>
+              <li className="text-white/80">Evictions</li>
+              <li className="text-white/80">Fire Damage</li>
+              <li className="text-white/80">Water Damage</li>
+              <li className="text-white/80">Code Violations</li>
+              
             </ul>
           </div>
 

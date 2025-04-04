@@ -2,6 +2,7 @@ declare global {
   interface Window {
     dataLayer: any[];
     gtag: (...args: any[]) => void;
+    gtag_report_conversion: (url?: string) => boolean;
   }
 }
 
@@ -27,4 +28,11 @@ export const trackEvent = (eventName: string, params?: Record<string, any>) => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', eventName, params);
   }
+};
+
+export const trackConversion = (url?: string) => {
+  if (typeof window !== 'undefined' && window.gtag_report_conversion) {
+    return window.gtag_report_conversion(url);
+  }
+  return false;
 }; 

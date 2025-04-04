@@ -12,11 +12,11 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center">
               <Image
-                src="/XVR.png"
+                src="/XVRsimple-white.png"
                 alt="XVR Buys Houses"
                 width={600}
                 height={160}
-                className="mr-2 invert"
+                className="mr-2"
               />
             </div>
             <p className="text-footer-text/90">
@@ -45,7 +45,7 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/how-it-works" className="text-footer-text/80 hover:text-footer-hover transition-colors">
+                <Link href="/#how-it-works" className="text-footer-text/80 hover:text-footer-hover transition-colors">
                   How It Works
                 </Link>
               </li>
@@ -55,7 +55,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/testimonials" className="text-footer-text/80 hover:text-footer-hover transition-colors">
+                <Link href="/#testimonials" className="text-footer-text/80 hover:text-footer-hover transition-colors">
                   Testimonials
                 </Link>
               </li>

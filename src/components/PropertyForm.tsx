@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from '../context/FormContext';
 import AddressInput from './AddressInput';
 import type { AddressData } from '../types/GooglePlacesTypes';
-import { trackEvent } from '../utils/analytics';
+import { trackEvent, trackConversion } from '../utils/analytics';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 interface FormErrors {
@@ -249,6 +249,11 @@ export default function PropertyForm() {
           <button
             type="submit"
             disabled={isSubmitting || !formState.phone || !formState.consent || !!errors.phone}
+            onClick={() => {
+              if (formState.phone && formState.consent && !errors.phone && !isSubmitting) {
+                trackConversion();
+              }
+            }}
             className={`w-full px-4 py-3 text-lg font-semibold text-white bg-secondary rounded-lg hover:bg-secondary/90 transition-colors
               ${(isSubmitting || !formState.phone || !formState.consent || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
           >

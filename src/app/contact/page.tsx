@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useForm } from '../../context/FormContext';
 import { trackEvent } from '../../utils/analytics';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 export default function ContactPage() {
   const router = useRouter();
   const { formState, updateFormData } = useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get reCAPTCHA execute function
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -28,7 +32,32 @@ export default function ContactPage() {
     setError(null);
     
     try {
-      // Submit complete form data to Google Sheets
+      // Generate reCAPTCHA token for form submission
+      let recaptchaToken = null;
+      if (executeRecaptcha) {
+        try {
+          // Use a short timeout to prevent blocking the submission if reCAPTCHA is slow
+          const tokenPromise = executeRecaptcha('submit_form');
+          const timeoutPromise = new Promise<string | null>((resolve) => {
+            setTimeout(() => resolve(null), 1500); // Wait max 1.5 seconds
+          });
+          
+          recaptchaToken = await Promise.race([tokenPromise, timeoutPromise]);
+          
+          if (recaptchaToken) {
+            console.log('Generated reCAPTCHA token for final form submission');
+          } else {
+            console.warn('reCAPTCHA token generation timed out, proceeding anyway');
+          }
+        } catch (recaptchaError) {
+          console.error('Failed to execute reCAPTCHA:', recaptchaError);
+          // Continue anyway, as this is the final step
+        }
+      } else {
+        console.warn('reCAPTCHA not available for final form submission');
+      }
+
+      // Submit complete form data to API
       console.log('Submitting complete form data:', formState);
       const response = await fetch('/api/submit-form', {
         method: 'POST',
@@ -37,7 +66,8 @@ export default function ContactPage() {
         },
         body: JSON.stringify({
           ...formState,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
+          ...(recaptchaToken ? { recaptchaToken } : {})
         })
       });
 

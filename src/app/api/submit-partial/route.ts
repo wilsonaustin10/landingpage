@@ -17,6 +17,102 @@ function validatePartialData(data: Partial<LeadFormData>): boolean {
   return true;
 }
 
+// Verify reCAPTCHA token with Google
+async function verifyRecaptchaToken(token: string): Promise<{ success: boolean; score?: number; error?: string }> {
+  // Handle development mode with more leniency
+  if (process.env.NODE_ENV === 'development') {
+    console.log('DEVELOPMENT MODE: Using relaxed reCAPTCHA verification');
+    
+    // Google's test key response for development
+    if (token === '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe' || 
+        !process.env.RECAPTCHA_SECRET_KEY) {
+      return {
+        success: true,
+        score: 0.9,
+      };
+    }
+  }
+  
+  if (!process.env.RECAPTCHA_SECRET_KEY) {
+    console.error('RECAPTCHA_SECRET_KEY is not configured');
+    
+    if (process.env.NODE_ENV === 'development') {
+      // In development, don't throw an error
+      return { 
+        success: true, 
+        score: 0.9, 
+        error: 'DEV MODE: No reCAPTCHA secret key, but proceeding anyway' 
+      };
+    }
+    
+    throw new Error('reCAPTCHA configuration error');
+  }
+
+  try {
+    const verificationUrl = 'https://www.google.com/recaptcha/api/siteverify';
+    const response = await fetch(verificationUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: process.env.RECAPTCHA_SECRET_KEY,
+        response: token,
+      }),
+    });
+
+    const data = await response.json();
+    
+    // Log verification result (exclude sensitive info in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('reCAPTCHA verification result:', data);
+    } else {
+      console.log('reCAPTCHA verification score:', data.score);
+    }
+    
+    if (!data.success) {
+      return {
+        success: false,
+        error: data['error-codes']?.join(', ') || 'reCAPTCHA verification failed',
+      };
+    }
+    
+    // Check the score (0.0 - 1.0), where higher means more likely human
+    // 0.5 is a reasonable threshold, adjust as needed
+    // In development, we'll be more lenient
+    const scoreThreshold = process.env.NODE_ENV === 'development' ? 0.1 : 0.5;
+    
+    if (data.score < scoreThreshold) {
+      return {
+        success: false,
+        score: data.score,
+        error: 'Failed reCAPTCHA verification - suspicious activity detected',
+      };
+    }
+    
+    return {
+      success: true,
+      score: data.score,
+    };
+  } catch (error) {
+    console.error('Error verifying reCAPTCHA token:', error);
+    
+    if (process.env.NODE_ENV === 'development') {
+      // In development, don't fail on verification errors
+      return {
+        success: true,
+        score: 0.9,
+        error: 'DEV MODE: Error during verification, but proceeding anyway',
+      };
+    }
+    
+    return {
+      success: false,
+      error: 'Error during reCAPTCHA verification',
+    };
+  }
+}
+
 // Send data to Zapier webhook
 async function sendToZapier(data: Partial<LeadFormData>) {
   if (!process.env.ZAPIER_WEBHOOK_URL) {
@@ -103,9 +199,61 @@ export async function POST(request: Request) {
       );
     }
 
-    // Prepare data with timestamp and tracking
+    // Verify reCAPTCHA token if present
+    if (data.recaptchaToken) {
+      try {
+        const recaptchaResult = await verifyRecaptchaToken(data.recaptchaToken);
+        
+        if (!recaptchaResult.success) {
+          console.error('reCAPTCHA verification failed:', recaptchaResult.error);
+          
+          // In development mode, allow bypass if reCAPTCHA verification fails
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('DEVELOPMENT MODE: Bypassing reCAPTCHA verification failure');
+          } else {
+            return NextResponse.json(
+              { error: 'Security check failed. Please try again.' },
+              { status: 400 }
+            );
+          }
+        } else {
+          console.log('reCAPTCHA verification passed with score:', recaptchaResult.score);
+          
+          // Save the reCAPTCHA score for fraud analytics
+          data.recaptchaScore = recaptchaResult.score;
+        }
+      } catch (verifyError) {
+        console.error('Error during reCAPTCHA verification:', verifyError);
+        
+        // In development mode, continue even if verification throws an error
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('DEVELOPMENT MODE: Continuing despite reCAPTCHA verification error');
+        } else {
+          return NextResponse.json(
+            { error: 'Security verification failed. Please try again later.' },
+            { status: 500 }
+          );
+        }
+      }
+    } else {
+      console.warn('No reCAPTCHA token provided');
+      
+      // In development mode, allow form submission without token
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('DEVELOPMENT MODE: Proceeding without reCAPTCHA token');
+      } else {
+        return NextResponse.json(
+          { error: 'Security token missing' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Prepare data with timestamp and tracking (remove the token before saving)
+    const { recaptchaToken, ...cleanData } = data;
+    
     const leadData: Partial<LeadFormData> = {
-      ...data,
+      ...cleanData,
       timestamp,
       lastUpdated: timestamp,
       leadId,

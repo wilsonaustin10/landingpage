@@ -91,10 +91,10 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-footer-text/20 text-center text-footer-text/80">
           <p>© {new Date().getFullYear()} XVR Buys Houses. All rights reserved.</p>
           <div className="mt-2 space-x-4">
-            <Link href="/privacy" className="hover:text-footer-hover transition-colors">
+            <Link href="/privacy-policy" className="hover:text-footer-hover transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-footer-hover transition-colors">
+            <Link href="/terms-of-service" className="hover:text-footer-hover transition-colors">
               Terms of Service
             </Link>
           </div>

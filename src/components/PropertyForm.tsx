@@ -7,6 +7,7 @@ import AddressInput from './AddressInput';
 import type { AddressData } from '../types/GooglePlacesTypes';
 import { trackEvent, trackConversion } from '../utils/analytics';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 interface FormErrors {
   address?: string;
@@ -22,6 +23,10 @@ export default function PropertyForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [consentGiven, setConsentGiven] = useState(formState.consent || false);
+
+  // Get reCAPTCHA execute function
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const validatePhone = (phone: string): boolean => {
     const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
@@ -38,7 +43,16 @@ export default function PropertyForm() {
       address: addressData.formattedAddress,
       placeId: addressData.placeId 
     });
-    updateFormData(addressData);
+    updateFormData({ 
+      address: addressData.formattedAddress,
+      placeId: addressData.placeId,
+      ...(addressData.streetNumber && addressData.street ? {
+        streetAddress: `${addressData.streetNumber} ${addressData.street}`.trim()
+      } : {}),
+      ...(addressData.city ? { city: addressData.city } : {}),
+      ...(addressData.state ? { state: addressData.state } : {}),
+      ...(addressData.postalCode ? { postalCode: addressData.postalCode } : {})
+    });
     setErrors(prev => ({ ...prev, address: undefined }));
     setTouched(prev => ({ ...prev, address: true }));
     setStep(2);
@@ -77,7 +91,7 @@ export default function PropertyForm() {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
-    if (!formState.consent) {
+    if (!consentGiven) {
       newErrors.consent = 'You must consent to be contacted';
     }
 
@@ -101,7 +115,7 @@ export default function PropertyForm() {
       validationErrors.phone = 'Invalid phone format. Please use (XXX) XXX-XXXX';
     }
 
-    if (!formState.consent) {
+    if (!consentGiven) {
       validationErrors.consent = 'You must consent to be contacted';
     }
 
@@ -109,14 +123,44 @@ export default function PropertyForm() {
       setErrors(validationErrors);
       return;
     }
+    
+    // Check if reCAPTCHA is available
+    let recaptchaToken = null;
+    try {
+      if (executeRecaptcha) {
+        // Add a timeout to avoid blocking submission if reCAPTCHA is slow
+        const tokenPromise = executeRecaptcha('submit_partial');
+        const timeoutPromise = new Promise<string | null>((resolve) => {
+          setTimeout(() => resolve(null), 2000); // Wait max 2 seconds
+        });
+        
+        recaptchaToken = await Promise.race([tokenPromise, timeoutPromise]);
+        
+        if (!recaptchaToken) {
+          console.warn('reCAPTCHA token generation timed out, proceeding anyway in development');
+          // Only show a warning in console, don't block submission
+        }
+      } else {
+        console.warn('reCAPTCHA not available, proceeding without verification');
+      }
+    } catch (recaptchaError) {
+      console.error('Error generating reCAPTCHA token:', recaptchaError);
+      // Don't block form submission on reCAPTCHA errors in development
+      if (process.env.NODE_ENV !== 'development') {
+        setErrors(prev => ({ ...prev, submit: 'Security verification failed. Please try again.' }));
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     setIsSubmitting(true);
-    setErrors({});
-
+    
     try {
       const dataToSubmit = {
         ...formState,
-        lastUpdated: new Date().toISOString()
+        consent: consentGiven,
+        lastUpdated: new Date().toISOString(),
+        ...(recaptchaToken ? { recaptchaToken } : {})
       };
 
       console.log('Submitting form data:', {
@@ -223,9 +267,9 @@ export default function PropertyForm() {
               <input
                 type="checkbox"
                 className="mt-1 h-4 w-4 text-secondary border-gray-300 rounded focus:ring-secondary"
-                checked={formState.consent || false}
-                onChange={(e) => updateFormData({ consent: e.target.checked })}
-                onBlur={() => handleBlur('consent')}
+                checked={consentGiven}
+                onChange={(e) => setConsentGiven(e.target.checked)}
+                onBlur={() => handleBlur('consent')} 
                 required
               />
               <span className="text-sm text-gray-600">
@@ -248,14 +292,14 @@ export default function PropertyForm() {
 
           <button
             type="submit"
-            disabled={isSubmitting || !formState.phone || !formState.consent || !!errors.phone}
+            disabled={isSubmitting || !formState.phone || !consentGiven || !!errors.phone}
             onClick={() => {
-              if (formState.phone && formState.consent && !errors.phone && !isSubmitting) {
-                trackConversion();
+              if (formState.phone && consentGiven && !errors.phone && !isSubmitting) {
+                trackConversion(); 
               }
             }}
             className={`w-full px-4 py-3 text-lg font-semibold text-white bg-secondary rounded-lg hover:bg-secondary/90 transition-colors
-              ${(isSubmitting || !formState.phone || !formState.consent || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
+              ${(isSubmitting || !formState.phone || !consentGiven || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">

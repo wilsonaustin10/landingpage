@@ -14,10 +14,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-outline-black">
-              The fastest and easiest way to sell your house
+              Sell Your House Fast for Cash - Get Your Offer Today
             </h1>
             <p className="text-xl text-white mb-8 text-outline-black">
-              Sell your house in as little as 7 days - no repairs, no fees, and we cover closing costs
+              We buy houses in any condition across California, Nevada, Arizona, and Oregon. Get a fair cash offer in as little as 7 days - no repairs, no fees, and we cover closing costs.
             </p>
           </div>
           <div className="max-w-md mx-auto">
@@ -31,30 +31,30 @@ export default function Home() {
       {/* <TrustBadges /> */}
       
       {/* Benefits Section */}
-      <section className="py-8 px-4 bg-white">
+      <section className="py-8 px-4 bg-white" aria-labelledby="benefits-heading">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-6">
-            Why Sell Your House To Us?
+          <h2 id="benefits-heading" className="text-3xl font-bold text-center mb-6">
+            Why Choose XVR Buys Houses?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: 'Fast Closing',
-                description: 'Close in as little as 7 days or on your timeline'
+                title: 'Fast Closing in 7 Days',
+                description: 'Close in as little as 7 days or on your timeline - whatever works best for you'
               },
               {
                 title: 'No Repairs Needed',
-                description: 'We buy houses in any condition - you won\'t need to fix anything'
+                description: 'We buy houses in any condition - you won\'t need to fix anything or clean up'
               },
               {
-                title: 'No Fees or Commissions',
-                description: 'Save thousands in realtor fees and closing costs'
+                title: 'Zero Fees or Commissions',
+                description: 'Save thousands in realtor fees and closing costs - we cover everything'
               }
             ].map((benefit, index) => (
-              <div key={index} className="text-center p-6 rounded-lg shadow-lg bg-white">
+              <article key={index} className="text-center p-6 rounded-lg shadow-lg bg-white">
                 <h3 className="text-xl font-semibold mb-3 text-outline-white">{benefit.title}</h3>
                 <p className="text-gray-600 text-outline-white">{benefit.description}</p>
-              </div>
+              </article>
             ))}
           </div>
         </div>
@@ -63,7 +63,7 @@ export default function Home() {
       <HowItWorks />
       
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-16 px-4 bg-gray-100">
+      <section id="testimonials" className="py-16 px-4 bg-gray-100" aria-labelledby="testimonials-heading">
         <Testimonials />
       </section>
     </main>

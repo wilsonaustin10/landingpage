@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Allow crawling of all content
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://offer.xvrbuyshouses.com/sitemap.xml 

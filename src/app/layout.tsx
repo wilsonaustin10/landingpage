@@ -1,15 +1,13 @@
-'use client';
-
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { FormProvider } from '../context/FormContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Script from 'next/script';
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+import ClientWrapper from '../components/ClientWrapper';
+import { metadata as siteMetadata } from './metadata';
 
-// Development mode fallback key (this is not a real key, just for development)
-const DEV_FALLBACK_SITE_KEY = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+export const metadata = siteMetadata;
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,23 +16,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Get the reCAPTCHA site key from env, use fallback in development
-  const reCaptchaSiteKey = 
-    process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 
-    (process.env.NODE_ENV === 'development' ? DEV_FALLBACK_SITE_KEY : '');
-
   return (
     <html lang="en">
       <head>
+        <link rel="canonical" href="https://offer.xvrbuyshouses.com" />
+        <meta name="google-site-verification" content="your-google-verification-code" />
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
           strategy="beforeInteractive"
-          onLoad={() => {
-            console.log('Google Maps script loaded');
-          }}
-          onError={(e) => {
-            console.error('Error loading Google Maps script:', e);
-          }}
         />
         <Script
           strategy="afterInteractive"
@@ -68,24 +57,37 @@ export default function RootLayout({
             `,
           }}
         />
+        <Script
+          id="structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "RealEstateAgent",
+              "name": "XVR Buys Houses",
+              "url": "https://offer.xvrbuyshouses.com",
+              "logo": "https://offer.xvrbuyshouses.com/JR Home Buyer Header Logo.png",
+              "description": "We buy houses in any condition. Get a fast, no-obligation cash offer for your property.",
+              "areaServed": ["California", "Nevada", "Arizona", "Oregon"],
+              "serviceType": "Cash Home Buying",
+              "priceRange": "$$",
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "Customer Service",
+                "areaServed": "US"
+              }
+            })
+          }}
+        />
       </head>
       <body className={inter.className}>
-        <GoogleReCaptchaProvider
-          reCaptchaKey={reCaptchaSiteKey}
-          scriptProps={{
-            async: true,
-            defer: true,
-            appendTo: 'head',
-          }}
-        >
-          <FormProvider>
-            <Header />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </FormProvider>
-        </GoogleReCaptchaProvider>
+        <ClientWrapper>
+          <Header />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
+        </ClientWrapper>
       </body>
     </html>
   );

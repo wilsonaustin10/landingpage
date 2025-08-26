@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
+import { appendLeadToSheet } from '@/utils/googleSheets';
 
 // Validate complete form data
 function validateFormData(data: Partial<LeadFormData>): data is LeadFormData {
@@ -246,18 +247,43 @@ export async function POST(request: Request) {
       lastUpdated: timestamp
     };
 
-    // 7. Send to Zapier webhook
-    try {
-      await sendToZapier(formData);
+    // 7. Send to both Zapier and Google Sheets in parallel
+    const results = await Promise.allSettled([
+      sendToZapier(formData),
+      appendLeadToSheet(formData)
+    ]);
+
+    const [zapierResult, sheetsResult] = results;
+
+    // Log results
+    if (zapierResult.status === 'fulfilled') {
       console.log('Successfully sent to Zapier webhook');
-      
+    } else {
+      console.error('Failed to send to Zapier:', zapierResult.reason);
+    }
+
+    if (sheetsResult.status === 'fulfilled' && sheetsResult.value.success) {
+      console.log('Successfully sent to Google Sheets');
+    } else if (sheetsResult.status === 'rejected') {
+      console.error('Failed to send to Google Sheets:', sheetsResult.reason);
+    } else if (sheetsResult.status === 'fulfilled' && !sheetsResult.value.success) {
+      console.error('Google Sheets returned error:', sheetsResult.value.error);
+    }
+
+    // Return success if at least one integration succeeded
+    if (zapierResult.status === 'fulfilled' || 
+        (sheetsResult.status === 'fulfilled' && sheetsResult.value.success)) {
       return NextResponse.json({ 
         success: true,
-        leadId: formData.leadId
+        leadId: formData.leadId,
+        integrations: {
+          zapier: zapierResult.status === 'fulfilled',
+          googleSheets: sheetsResult.status === 'fulfilled' && sheetsResult.value.success
+        }
       });
-    } catch (error) {
-      console.error('Failed to send to Zapier:', error);
-      throw error;
+    } else {
+      // Both failed
+      throw new Error('Failed to save lead data to any integration');
     }
 
   } catch (error) {

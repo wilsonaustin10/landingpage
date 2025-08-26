@@ -123,9 +123,9 @@ class GoogleSheetsClient {
         range: 'Sheet1!A:Q',
       });
 
-      const rows = getResponse.data.values || [];
+      const rows: any[][] = getResponse.data.values || [];
       const leadIdIndex = 1; // Column B contains leadId
-      const existingRowIndex = rows.findIndex(row => row[leadIdIndex] === data.leadId);
+      const existingRowIndex = rows.findIndex((row: any[]) => row[leadIdIndex] === data.leadId);
 
       if (existingRowIndex <= 0) {
         // No existing row found, create new one with complete data

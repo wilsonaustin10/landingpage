@@ -268,7 +268,11 @@ export default function PropertyForm() {
                 type="checkbox"
                 className="mt-1 h-4 w-4 text-secondary border-gray-300 rounded focus:ring-secondary"
                 checked={consentGiven}
-                onChange={(e) => setConsentGiven(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setConsentGiven(checked);
+                  updateFormData({ consent: checked });
+                }}
                 onBlur={() => handleBlur('consent')} 
                 required
               />

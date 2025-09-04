@@ -130,8 +130,11 @@ async function verifyRecaptchaToken(token: string): Promise<{ success: boolean; 
 // Send data to Zapier webhook
 async function sendToZapier(data: LeadFormData) {
   if (!process.env.ZAPIER_WEBHOOK_URL) {
-    throw new Error('Zapier webhook URL not configured');
+    console.error('ZAPIER_WEBHOOK_URL environment variable is not set');
+    throw new Error('Zapier webhook URL not configured - please set ZAPIER_WEBHOOK_URL environment variable');
   }
+  
+  console.log('Attempting to send to Zapier webhook...');
 
   try {
     const response = await fetch(process.env.ZAPIER_WEBHOOK_URL, {
@@ -252,6 +255,9 @@ export async function POST(request: Request) {
     };
 
     // 7. Send to both Zapier and Google Sheets in parallel
+    console.log('Sending to integrations...');
+    console.log('ZAPIER_WEBHOOK_URL exists:', !!process.env.ZAPIER_WEBHOOK_URL);
+    
     const results = await Promise.allSettled([
       sendToZapier(formData),
       appendLeadToSheet(formData)
@@ -259,11 +265,12 @@ export async function POST(request: Request) {
 
     const [zapierResult, sheetsResult] = results;
 
-    // Log results
+    // Log detailed results
     if (zapierResult.status === 'fulfilled') {
-      console.log('Successfully sent to Zapier webhook');
+      console.log('✅ Successfully sent to Zapier webhook');
     } else {
-      console.error('Failed to send to Zapier:', zapierResult.reason);
+      console.error('❌ Failed to send to Zapier:', zapierResult.reason);
+      console.error('Zapier error details:', JSON.stringify(zapierResult.reason, null, 2));
     }
 
     if (sheetsResult.status === 'fulfilled' && sheetsResult.value.success) {
@@ -277,13 +284,21 @@ export async function POST(request: Request) {
     // Return success if at least one integration succeeded
     if (zapierResult.status === 'fulfilled' || 
         (sheetsResult.status === 'fulfilled' && sheetsResult.value.success)) {
+      
+      // Log warning if Zapier failed but Sheets succeeded
+      if (zapierResult.status === 'rejected' && sheetsResult.status === 'fulfilled') {
+        console.warn('⚠️ Lead saved to Google Sheets but failed to send to CRM/Zapier');
+        console.warn('Please check ZAPIER_WEBHOOK_URL environment variable');
+      }
+      
       return NextResponse.json({ 
         success: true,
         leadId: formData.leadId,
         integrations: {
           zapier: zapierResult.status === 'fulfilled',
           googleSheets: sheetsResult.status === 'fulfilled' && sheetsResult.value.success
-        }
+        },
+        warning: zapierResult.status === 'rejected' ? 'CRM submission failed - lead saved to Google Sheets only' : undefined
       });
     } else {
       // Both failed

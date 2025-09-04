@@ -23,8 +23,44 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Comprehensive validation before submission
+    const validationErrors: string[] = [];
+    
+    if (!formState.firstName?.trim()) {
+      validationErrors.push('First name is required');
+    }
+    
+    if (!formState.lastName?.trim()) {
+      validationErrors.push('Last name is required');
+    }
+    
     if (!validateEmail(formState.email || '')) {
-      setError('Please enter a valid email address');
+      validationErrors.push('Valid email address is required');
+    }
+    
+    // Verify all previous steps were completed
+    if (!formState.address?.trim()) {
+      validationErrors.push('Property address is missing - please go back and complete step 1');
+    }
+    
+    if (!formState.phone?.trim()) {
+      validationErrors.push('Phone number is missing - please go back and complete step 1');
+    }
+    
+    if (!formState.propertyCondition) {
+      validationErrors.push('Property condition is missing - please go back and complete previous steps');
+    }
+    
+    if (!formState.timeframe) {
+      validationErrors.push('Timeframe is missing - please go back and complete previous steps');
+    }
+    
+    if (!formState.price) {
+      validationErrors.push('Price expectation is missing - please go back and complete previous steps');
+    }
+    
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join('. '));
       return;
     }
 

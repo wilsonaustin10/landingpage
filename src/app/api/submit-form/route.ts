@@ -4,28 +4,51 @@ import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
 import { appendLeadToSheet } from '@/utils/googleSheets';
 
-// Validate complete form data
+// Validate complete form data - ONLY accept fully completed forms
 function validateFormData(data: Partial<LeadFormData>): data is LeadFormData {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid data format');
   }
 
-  // Required fields validation (leadId is now generated, not required from client)
+  // ALL required fields for complete form submission
   const requiredFields: (keyof LeadFormData)[] = [
     'address', 'phone', 'firstName', 'lastName', 
     'email', 'propertyCondition', 'timeframe', 'price'
   ];
   
+  const missingFields: string[] = [];
   for (const field of requiredFields) {
     if (!data[field]) {
-      throw new Error(`${field} is required`);
+      missingFields.push(field);
     }
+  }
+  
+  if (missingFields.length > 0) {
+    throw new Error(`Incomplete form submission. Missing required fields: ${missingFields.join(', ')}. Only complete forms are accepted.`);
   }
 
   // Phone number validation
   const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
   if (!phoneRegex.test(data.phone as string)) {
-    throw new Error('Invalid phone number format');
+    throw new Error('Invalid phone number format. Expected format: (XXX) XXX-XXXX');
+  }
+  
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(data.email as string)) {
+    throw new Error('Invalid email address format');
+  }
+  
+  // Validate that property condition is one of the expected values
+  const validConditions = ['excellent', 'good', 'fair', 'poor'];
+  if (!validConditions.includes(data.propertyCondition as string)) {
+    throw new Error(`Invalid property condition. Must be one of: ${validConditions.join(', ')}`);
+  }
+  
+  // Validate timeframe
+  const validTimeframes = ['immediately', '1-3months', '3-6months', '6+months'];
+  if (!validTimeframes.includes(data.timeframe as string)) {
+    throw new Error(`Invalid timeframe. Must be one of: ${validTimeframes.join(', ')}`);
   }
 
   return true;
@@ -183,12 +206,13 @@ async function sendToZapier(data: LeadFormData) {
 
 /**
  * API Route for saving complete property details
- * Used for full form submissions with all property information
+ * IMPORTANT: Only accepts COMPLETE form submissions with all required fields
+ * Partial submissions are no longer supported and will be rejected
  */
 export async function POST(request: Request) {
   try {
     // Log incoming request
-    console.log('Received complete form submission request');
+    console.log('Received form submission request - validating for completeness');
 
     // 1. Rate limiting check
     const headersList = headers();
@@ -244,11 +268,20 @@ export async function POST(request: Request) {
       console.log('Proceeding without reCAPTCHA verification for leadId:', data.leadId);
     }
 
-    // 4. Validate form data
-    if (!validateFormData(data)) {
-      console.error('Invalid form data:', data);
+    // 4. Validate form data - ENFORCE complete submission
+    try {
+      if (!validateFormData(data)) {
+        console.error('Form validation failed - incomplete submission blocked');
+        return NextResponse.json(
+          { error: 'Incomplete form submission blocked. All fields must be completed before submission.' },
+          { status: 400 }
+        );
+      }
+    } catch (validationError) {
+      console.error('Form validation error:', validationError);
+      console.log('Rejected incomplete submission with fields:', Object.keys(data || {}));
       return NextResponse.json(
-        { error: 'Invalid form data - Missing required fields or invalid format' },
+        { error: validationError instanceof Error ? validationError.message : 'Form validation failed' },
         { status: 400 }
       );
     }
@@ -270,6 +303,17 @@ export async function POST(request: Request) {
     };
 
     // 7. Send to both Zapier and Google Sheets in parallel
+    console.log('=== COMPLETE FORM SUBMISSION VALIDATED ===');
+    console.log('Submitting complete lead with all required fields:');
+    console.log('- Address:', formData.address);
+    console.log('- Phone:', formData.phone);
+    console.log('- Name:', `${formData.firstName} ${formData.lastName}`);
+    console.log('- Email:', formData.email);
+    console.log('- Property Condition:', formData.propertyCondition);
+    console.log('- Timeframe:', formData.timeframe);
+    console.log('- Price:', formData.price);
+    console.log('- Lead ID:', formData.leadId);
+    console.log('=========================================');
     console.log('Sending to integrations...');
     console.log('ZAPIER_WEBHOOK_URL exists:', !!process.env.ZAPIER_WEBHOOK_URL);
     

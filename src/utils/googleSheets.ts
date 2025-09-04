@@ -73,48 +73,30 @@ class GoogleSheetsClient {
     try {
       const timestamp = new Date().toISOString();
       
-      // For partial leads (initial submission)
+      // IMPORTANT: Only accept complete submissions - partial submissions are blocked
       if (data.submissionType === 'partial') {
-        const row = [
-          timestamp,                                // A: timestamp
-          data.leadId,                             // B: leadId
-          data.address || '',                      // C: address
-          data.streetAddress || '',                // D: streetAddress
-          data.city || '',                         // E: city
-          data.state || '',                        // F: state
-          data.postalCode || '',                   // G: postalCode
-          data.phone || '',                        // H: phone
-          data.placeId || '',                      // I: placeId
-          '',                                      // J: firstName (empty for partial)
-          '',                                      // K: lastName (empty for partial)
-          '',                                      // L: email (empty for partial)
-          '',                                      // M: isPropertyListed
-          '',                                      // N: propertyCondition
-          '',                                      // O: timeframe
-          '',                                      // P: price
-          timestamp                                // Q: lastUpdated
-        ];
-
-        const response = await this.sheets.spreadsheets.values.append({
-          spreadsheetId,
-          range: 'Sheet1!A:Q',
-          valueInputOption: 'USER_ENTERED',
-          insertDataOption: 'INSERT_ROWS',
-          requestBody: {
-            values: [row]
-          }
-        });
-
-        if (response.status !== 200) {
-          throw new Error('Failed to append partial lead');
-        }
-
-        console.log('Successfully appended partial lead to Google Sheet');
-        return { success: true };
+        console.error('BLOCKED: Partial submission attempted to Google Sheets');
+        console.error('Only complete forms with all required fields are accepted');
+        return { 
+          success: false, 
+          error: 'Partial submissions are no longer accepted. All form fields must be completed.' 
+        };
       }
 
-      // For complete submissions (no longer looking for existing rows since we disabled partial submissions)
-      // Simply append as a new row with all the data
+      // Validate that this is a complete submission with all required fields
+      const requiredFields = ['address', 'phone', 'firstName', 'lastName', 'email', 'propertyCondition', 'timeframe', 'price'];
+      const missingFields = requiredFields.filter(field => !data[field as keyof typeof data]);
+      
+      if (missingFields.length > 0) {
+        console.error('BLOCKED: Incomplete submission to Google Sheets');
+        console.error('Missing required fields:', missingFields.join(', '));
+        return {
+          success: false,
+          error: `Incomplete submission blocked. Missing fields: ${missingFields.join(', ')}`
+        };
+      }
+
+      // Process complete submission - append as a new row with all the data
       const newRow = [
         timestamp,                               // A: timestamp
         data.leadId || `lead_${Date.now()}`,    // B: leadId (generate if not provided)

@@ -6,8 +6,8 @@ import { useForm } from '../context/FormContext';
 import AddressInput from './AddressInput';
 import type { AddressData } from '../types/GooglePlacesTypes';
 import { trackEvent, trackConversion } from '../utils/analytics';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { Loader2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface FormErrors {
   address?: string;
@@ -20,13 +20,9 @@ export default function PropertyForm() {
   const router = useRouter();
   const { formState, updateFormData } = useForm();
   const [step, setStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [consentGiven, setConsentGiven] = useState(formState.consent || false);
-
-  // Get reCAPTCHA execute function
-  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const validatePhone = (phone: string): boolean => {
     const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
@@ -102,7 +98,8 @@ export default function PropertyForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form before submission
+    // Instead of submitting, navigate to next step to collect full data
+    // Validate current step before proceeding
     const validationErrors: Record<string, string> = {};
     
     if (!formState.address?.trim()) {
@@ -124,95 +121,17 @@ export default function PropertyForm() {
       return;
     }
     
-    // Check if reCAPTCHA is available
-    let recaptchaToken = null;
-    try {
-      if (executeRecaptcha) {
-        // Add a timeout to avoid blocking submission if reCAPTCHA is slow
-        const tokenPromise = executeRecaptcha('submit_partial');
-        const timeoutPromise = new Promise<string | null>((resolve) => {
-          setTimeout(() => resolve(null), 2000); // Wait max 2 seconds
-        });
-        
-        recaptchaToken = await Promise.race([tokenPromise, timeoutPromise]);
-        
-        if (!recaptchaToken) {
-          console.warn('reCAPTCHA token generation timed out, proceeding anyway in development');
-          // Only show a warning in console, don't block submission
-        }
-      } else {
-        console.warn('reCAPTCHA not available, proceeding without verification');
-      }
-    } catch (recaptchaError) {
-      console.error('Error generating reCAPTCHA token:', recaptchaError);
-      // Don't block form submission on reCAPTCHA errors in development
-      if (process.env.NODE_ENV !== 'development') {
-        setErrors(prev => ({ ...prev, submit: 'Security verification failed. Please try again.' }));
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
-    setIsSubmitting(true);
+    // Store consent in form state
+    updateFormData({ consent: consentGiven });
     
-    try {
-      const dataToSubmit = {
-        ...formState,
-        consent: consentGiven,
-        lastUpdated: new Date().toISOString(),
-        ...(recaptchaToken ? { recaptchaToken } : {})
-      };
+    // Track progress but don't submit yet
+    trackEvent('initial_form_completed', { 
+      address: formState.address,
+      hasPhone: !!formState.phone
+    });
 
-      console.log('Submitting form data:', {
-        address: dataToSubmit.address,
-        phone: dataToSubmit.phone,
-        consent: dataToSubmit.consent
-      });
-
-      const response = await fetch('/api/submit-partial', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSubmit)
-      });
-
-      let result;
-      try {
-        const text = await response.text();
-        result = text ? JSON.parse(text) : {};
-        if (!response.ok) {
-          console.error('API error response:', text);
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-      } catch (parseError) {
-        console.error('Error parsing API response:', parseError);
-        throw new Error(`Failed to parse API response: ${response.status} ${response.statusText}`);
-      }
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to save lead data');
-      }
-
-      // Store leadId in form state for later use
-      updateFormData({ leadId: result.leadId });
-
-      trackEvent('form_submitted', { 
-        address: formState.address,
-        hasPhone: !!formState.phone
-      });
-
-      router.push('/property-listed');
-
-    } catch (error) {
-      console.error('Form submission error:', error);
-      setErrors(prev => ({
-        ...prev,
-        submit: error instanceof Error ? error.message : 'An error occurred'
-      }));
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Navigate to property details page to collect remaining information
+    router.push('/property-listed');
   };
 
   return (
@@ -296,23 +215,16 @@ export default function PropertyForm() {
 
           <button
             type="submit"
-            disabled={isSubmitting || !formState.phone || !consentGiven || !!errors.phone}
+            disabled={!formState.phone || !consentGiven || !!errors.phone}
             onClick={() => {
-              if (formState.phone && consentGiven && !errors.phone && !isSubmitting) {
+              if (formState.phone && consentGiven && !errors.phone) {
                 trackConversion(); 
               }
             }}
             className={`w-full px-4 py-3 text-lg font-semibold text-white bg-secondary rounded-lg hover:bg-secondary/90 transition-colors
-              ${(isSubmitting || !formState.phone || !consentGiven || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
+              ${(!formState.phone || !consentGiven || !!errors.phone) ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center">
-                <Loader2 className="animate-spin mr-2 h-5 w-5" />
-                Submitting...
-              </span>
-            ) : (
-              'Get Your Cash Offer'
-            )}
+            Get Your Cash Offer
           </button>
         </div>
       )}

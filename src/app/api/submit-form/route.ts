@@ -10,11 +10,10 @@ function validateFormData(data: Partial<LeadFormData>): data is LeadFormData {
     throw new Error('Invalid data format');
   }
 
-  // Required fields validation
+  // Required fields validation (leadId is now generated, not required from client)
   const requiredFields: (keyof LeadFormData)[] = [
     'address', 'phone', 'firstName', 'lastName', 
-    'email', 'propertyCondition', 'timeframe', 'price',
-    'leadId'
+    'email', 'propertyCondition', 'timeframe', 'price'
   ];
   
   for (const field of requiredFields) {
@@ -178,6 +177,9 @@ export async function POST(request: Request) {
     const ip = headersList.get('x-forwarded-for') || 'unknown';
     const timestamp = new Date().toISOString();
     
+    // Generate leadId for this submission (since we no longer have partial submissions)
+    const leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const rateLimitResult = await rateLimit(ip);
     if (!rateLimitResult.success) {
       console.log('Rate limit exceeded for IP:', ip);
@@ -243,8 +245,10 @@ export async function POST(request: Request) {
     // 6. Prepare data with tracking information
     const formData: LeadFormData = {
       ...formDataWithoutToken,
+      leadId: data.leadId || leadId, // Use existing leadId if present, otherwise use generated one
       timestamp: data.timestamp || timestamp,
-      lastUpdated: timestamp
+      lastUpdated: timestamp,
+      submissionType: 'complete' // Mark as complete submission
     };
 
     // 7. Send to both Zapier and Google Sheets in parallel

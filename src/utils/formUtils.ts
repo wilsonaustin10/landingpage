@@ -53,72 +53,72 @@ const generateDataKey = (formData: Partial<FormData>): string => {
   return JSON.stringify(relevantData);
 };
 
-// Send partial form data to CRM with retry logic
-const sendToCRM = async (formData: Partial<FormData>, retryCount = 0): Promise<boolean> => {
-  try {
-    const response = await fetch('/api/partial-lead', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...formData,
-        tempEmail: localStorage.getItem('tempEmail'),
-        source: typeof window !== 'undefined' ? window.location.href : '',
-        submissionType: 'partial',
-        timestamp: new Date().toISOString()
-      }),
-    });
+// COMMENTED OUT: Send partial form data to CRM with retry logic
+// const sendToCRM = async (formData: Partial<FormData>, retryCount = 0): Promise<boolean> => {
+//   try {
+//     const response = await fetch('/api/partial-lead', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         ...formData,
+//         tempEmail: localStorage.getItem('tempEmail'),
+//         source: typeof window !== 'undefined' ? window.location.href : '',
+//         submissionType: 'partial',
+//         timestamp: new Date().toISOString()
+//       }),
+//     });
     
-    if (!response.ok) {
-      throw new Error(`Failed to send to CRM: ${response.statusText}`);
-    }
+//     if (!response.ok) {
+//       throw new Error(`Failed to send to CRM: ${response.statusText}`);
+//     }
     
-    const responseData = await response.json();
-    if (responseData.data?.contact?.email?.includes('@gmail.com')) {
-      localStorage.setItem('tempEmail', responseData.data.contact.email);
-    }
+//     const responseData = await response.json();
+//     if (responseData.data?.contact?.email?.includes('@gmail.com')) {
+//       localStorage.setItem('tempEmail', responseData.data.contact.email);
+//     }
     
-    return true;
-  } catch (error) {
-    console.error('Error sending to CRM:', error);
+//     return true;
+//   } catch (error) {
+//     console.error('Error sending to CRM:', error);
     
-    // Retry logic for network errors
-    if (retryCount < 2) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return sendToCRM(formData, retryCount + 1);
-    }
+//     // Retry logic for network errors
+//     if (retryCount < 2) {
+//       await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+//       return sendToCRM(formData, retryCount + 1);
+//     }
     
-    return false;
-  }
-};
+//     return false;
+//   }
+// };
 
-// Track partial submission in analytics
-const trackPartialSubmission = (formData: Partial<FormData>): void => {
-  try {
-    // Google Analytics event
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'partial_form_submission', {
-        event_category: 'Lead',
-        event_label: 'Partial Form Submit',
-        value: Object.keys(formData).length,
-        nonInteraction: true
-      });
-    }
+// COMMENTED OUT: Track partial submission in analytics
+// const trackPartialSubmission = (formData: Partial<FormData>): void => {
+//   try {
+//     // Google Analytics event
+//     if (typeof window !== 'undefined' && (window as any).gtag) {
+//       (window as any).gtag('event', 'partial_form_submission', {
+//         event_category: 'Lead',
+//         event_label: 'Partial Form Submit',
+//         value: Object.keys(formData).length,
+//         nonInteraction: true
+//       });
+//     }
     
-    // Facebook Pixel event
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('trackCustom', 'PartialFormSubmission', {
-        content_name: 'Partial Lead Form',
-        content_category: 'Lead',
-        num_fields: Object.keys(formData).length,
-        fields_completed: Object.keys(formData).join(',')
-      });
-    }
-  } catch (error) {
-    console.error('Error tracking analytics:', error);
-  }
-};
+//     // Facebook Pixel event
+//     if (typeof window !== 'undefined' && (window as any).fbq) {
+//       (window as any).fbq('trackCustom', 'PartialFormSubmission', {
+//         content_name: 'Partial Lead Form',
+//         content_category: 'Lead',
+//         num_fields: Object.keys(formData).length,
+//         fields_completed: Object.keys(formData).join(',')
+//       });
+//     }
+//   } catch (error) {
+//     console.error('Error tracking analytics:', error);
+//   }
+// };
 
 // Optimize timeouts and add request batching
 const AUTOSAVE_DELAY = 15000; // Reduced to 15 seconds for better UX
@@ -176,41 +176,42 @@ export const autoSaveForm = debounce(async (formId: string, formData: Partial<Fo
   // Save to localStorage
   const savedLocally = saveToLocalStorage(formId, formData);
   
-  if ((formData.address || formData.phone) && canSubmitToCRM(formId)) {
-    pendingSubmissions.push(formData);
+  // COMMENTED OUT: Partial lead submission logic
+  // if ((formData.address || formData.phone) && canSubmitToCRM(formId)) {
+  //   pendingSubmissions.push(formData);
     
-    // Process batch if it's time or we have enough submissions
-    if (pendingSubmissions.length >= 3 || Date.now() - lastBatchTime >= BATCH_INTERVAL) {
-      await processBatch(formId);
-    }
-  }
+  //   // Process batch if it's time or we have enough submissions
+  //   if (pendingSubmissions.length >= 3 || Date.now() - lastBatchTime >= BATCH_INTERVAL) {
+  //     await processBatch(formId);
+  //   }
+  // }
 }, AUTOSAVE_DELAY);
 
-// Batch processing
+// COMMENTED OUT: Batch processing
 let lastBatchTime = Date.now();
-const processBatch = async (formId: string): Promise<void> => {
-  if (pendingSubmissions.length === 0) return;
+// const processBatch = async (formId: string): Promise<void> => {
+//   if (pendingSubmissions.length === 0) return;
 
-  const submissions = [...pendingSubmissions];
-  pendingSubmissions = [];
-  lastBatchTime = Date.now();
+//   const submissions = [...pendingSubmissions];
+//   pendingSubmissions = [];
+//   lastBatchTime = Date.now();
 
-  try {
-    const results = await Promise.allSettled(
-      submissions.map(data => sendToCRM(data))
-    );
+//   try {
+//     const results = await Promise.allSettled(
+//       submissions.map(data => sendToCRM(data))
+//     );
     
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value) {
-        trackFormInteraction(submissions[index], 'partial_submission_success');
-      } else {
-        console.error('Batch submission failed:', result);
-      }
-    });
-  } catch (error) {
-    console.error('Batch processing error:', error);
-  }
-};
+//     results.forEach((result, index) => {
+//       if (result.status === 'fulfilled' && result.value) {
+//         trackFormInteraction(submissions[index], 'partial_submission_success');
+//       } else {
+//         console.error('Batch submission failed:', result);
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Batch processing error:', error);
+//   }
+// };
 
 // Function to retrieve saved form data
 export const getSavedFormData = (formId: string): Partial<FormData> => {
@@ -236,52 +237,56 @@ export const clearSavedFormData = (formId: string): void => {
 // Timeout duration in milliseconds
 const PARTIAL_LEAD_TIMEOUT = 60000; // 1 minute
 
-// Enhanced partial lead capture with validation
+// COMMENTED OUT: Enhanced partial lead capture with validation
 export function setupPartialLeadCapture(formState: FormState) {
-  // Start capture only if we have both required fields
-  if (!formState.address || !formState.phone) {
-    return () => {};
-  }
+  // DISABLED: Partial lead capture functionality
+  return () => {};
+  
+  // Original implementation commented out:
+  // // Start capture only if we have both required fields
+  // if (!formState.address || !formState.phone) {
+  //   return () => {};
+  // }
 
-  let isSubmitted = false;
-  const captureTimeout = 60000; // 1 minute fixed timeout for abandonment
+  // let isSubmitted = false;
+  // const captureTimeout = 60000; // 1 minute fixed timeout for abandonment
 
-  const timeoutId = setTimeout(async () => {
-    if (isSubmitted) return;
+  // const timeoutId = setTimeout(async () => {
+  //   if (isSubmitted) return;
 
-    // Only capture if form is incomplete (no contact info)
-    const isIncomplete = !formState.firstName && !formState.lastName && !formState.email;
+  //   // Only capture if form is incomplete (no contact info)
+  //   const isIncomplete = !formState.firstName && !formState.lastName && !formState.email;
     
-    if (isIncomplete) {
-      try {
-        const response = await fetch('/api/submit-lead', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            address: formState.address,
-            phone: formState.phone,
-            lastUpdated: new Date().toISOString(),
-            submissionType: 'partial',
-            captureType: 'abandoned',
-            timeOnPage: Date.now() - (window as any).pageLoadTime || 0
-          })
-        });
+  //   if (isIncomplete) {
+  //     try {
+  //       const response = await fetch('/api/submit-lead', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({
+  //           address: formState.address,
+  //           phone: formState.phone,
+  //           lastUpdated: new Date().toISOString(),
+  //           submissionType: 'partial',
+  //           captureType: 'abandoned',
+  //           timeOnPage: Date.now() - (window as any).pageLoadTime || 0
+  //         })
+  //       });
 
-        if (!response.ok) throw new Error('Failed to capture partial lead');
+  //       if (!response.ok) throw new Error('Failed to capture partial lead');
         
-        isSubmitted = true;
-        trackFormInteraction(formState, 'partial_lead_captured');
-      } catch (error) {
-        console.error('Partial lead capture error:', error);
-        trackFormInteraction(formState, 'partial_lead_capture_failed');
-      }
-    }
-  }, captureTimeout);
+  //       isSubmitted = true;
+  //       trackFormInteraction(formState, 'partial_lead_captured');
+  //     } catch (error) {
+  //       console.error('Partial lead capture error:', error);
+  //       trackFormInteraction(formState, 'partial_lead_capture_failed');
+  //     }
+  //   }
+  // }, captureTimeout);
 
-  return () => {
-    clearTimeout(timeoutId);
-    isSubmitted = true;
-  };
+  // return () => {
+  //   clearTimeout(timeoutId);
+  //   isSubmitted = true;
+  // };
 }
 
 // Calculate lead quality score based on available data

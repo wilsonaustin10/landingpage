@@ -113,95 +113,43 @@ class GoogleSheetsClient {
         return { success: true };
       }
 
-      // For complete submissions, find and update existing row
-      if (!data.leadId) {
-        throw new Error('leadId is required for complete submissions');
-      }
-
-      const getResponse = await this.sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'Sheet1!A:Q',
-      });
-
-      const rows: any[][] = getResponse.data.values || [];
-      const leadIdIndex = 1; // Column B contains leadId
-      const existingRowIndex = rows.findIndex((row: any[]) => row[leadIdIndex] === data.leadId);
-
-      if (existingRowIndex <= 0) {
-        // No existing row found, create new one with complete data
-        const newRow = [
-          timestamp,                               // A: timestamp
-          data.leadId,                            // B: leadId
-          data.address || '',                     // C: address
-          data.streetAddress || '',               // D: streetAddress
-          data.city || '',                        // E: city
-          data.state || '',                       // F: state
-          data.postalCode || '',                  // G: postalCode
-          data.phone || '',                       // H: phone
-          data.placeId || '',                     // I: placeId
-          data.firstName || '',                   // J: firstName
-          data.lastName || '',                    // K: lastName
-          data.email || '',                       // L: email
-          data.isPropertyListed ? 'Yes' : 'No',   // M: isPropertyListed
-          data.propertyCondition || '',           // N: propertyCondition
-          data.timeframe || '',                   // O: timeframe
-          data.price || '',                       // P: price
-          timestamp                               // Q: lastUpdated
-        ];
-
-        const appendResponse = await this.sheets.spreadsheets.values.append({
-          spreadsheetId,
-          range: 'Sheet1!A:Q',
-          valueInputOption: 'USER_ENTERED',
-          insertDataOption: 'INSERT_ROWS',
-          requestBody: {
-            values: [newRow]
-          }
-        });
-
-        if (appendResponse.status !== 200) {
-          throw new Error('Failed to append complete lead');
-        }
-
-        console.log('Successfully appended complete lead to Google Sheet (new row)');
-        return { success: true };
-      }
-
-      // Update existing row with complete data
-      const row = [
-        rows[existingRowIndex][0],                 // A: Keep original timestamp
-        data.leadId,                               // B: Keep same leadId
-        data.address || rows[existingRowIndex][2], // C: address
-        data.streetAddress || rows[existingRowIndex][3],
-        data.city || rows[existingRowIndex][4],
-        data.state || rows[existingRowIndex][5],
-        data.postalCode || rows[existingRowIndex][6],
-        data.phone || rows[existingRowIndex][7],
-        data.placeId || rows[existingRowIndex][8],
-        data.firstName || '',                      // J: firstName
-        data.lastName || '',                       // K: lastName
-        data.email || '',                          // L: email
-        data.isPropertyListed ? 'Yes' : 'No',      // M: isPropertyListed
-        data.propertyCondition || '',              // N: propertyCondition
-        data.timeframe || '',                      // O: timeframe
-        data.price || '',                          // P: price
-        timestamp                                  // Q: lastUpdated
+      // For complete submissions (no longer looking for existing rows since we disabled partial submissions)
+      // Simply append as a new row with all the data
+      const newRow = [
+        timestamp,                               // A: timestamp
+        data.leadId || `lead_${Date.now()}`,    // B: leadId (generate if not provided)
+        data.address || '',                     // C: address
+        data.streetAddress || '',               // D: streetAddress
+        data.city || '',                        // E: city
+        data.state || '',                       // F: state
+        data.postalCode || '',                  // G: postalCode
+        data.phone || '',                       // H: phone
+        data.placeId || '',                     // I: placeId
+        data.firstName || '',                   // J: firstName
+        data.lastName || '',                    // K: lastName
+        data.email || '',                       // L: email
+        data.isPropertyListed ? 'Yes' : 'No',   // M: isPropertyListed
+        data.propertyCondition || '',           // N: propertyCondition
+        data.timeframe || '',                   // O: timeframe
+        data.price || '',                       // P: price
+        timestamp                               // Q: lastUpdated
       ];
 
-      const updateResponse = await this.sheets.spreadsheets.values.update({
+      const appendResponse = await this.sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `Sheet1!A${existingRowIndex + 1}:Q${existingRowIndex + 1}`,
+        range: 'Sheet1!A:Q',
         valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
         requestBody: {
-          values: [row]
+          values: [newRow]
         }
       });
 
-      if (updateResponse.status !== 200) {
-        throw new Error('Failed to update complete submission');
+      if (appendResponse.status !== 200) {
+        throw new Error('Failed to append complete lead');
       }
 
-      console.log('Successfully updated lead in Google Sheet');
+      console.log('Successfully appended complete lead to Google Sheet');
       return { success: true };
     } catch (error) {
       console.error('Error in Google Sheets operation:', error);

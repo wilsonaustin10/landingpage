@@ -58,13 +58,13 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     }
   }, [formState]);
 
-  // Setup partial lead capture only after initial submission
-  useEffect(() => {
-    if (currentStep !== 'initial' && formState.address && formState.phone) {
-      const cleanup = setupPartialLeadCapture(formState);
-      return cleanup;
-    }
-  }, [currentStep, formState.address, formState.phone]);
+  // COMMENTED OUT: Setup partial lead capture only after initial submission
+  // useEffect(() => {
+  //   if (currentStep !== 'initial' && formState.address && formState.phone) {
+  //     const cleanup = setupPartialLeadCapture(formState);
+  //     return cleanup;
+  //   }
+  // }, [currentStep, formState.address, formState.phone]);
 
   // Optimized form state updates with validation
   const updateFormData = (newData: Partial<FormState>) => {
@@ -131,50 +131,50 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Handle initial partial submission
-  const submitPartialLead = async (): Promise<SubmissionResponse> => {
-    // Validate required fields
-    if (!formState.address || !formState.phone || !formState.consent) {
-      return { success: false, error: 'Address, phone, and consent are required' };
-    }
+  // COMMENTED OUT: Handle initial partial submission
+  // const submitPartialLead = async (): Promise<SubmissionResponse> => {
+  //   // Validate required fields
+  //   if (!formState.address || !formState.phone || !formState.consent) {
+  //     return { success: false, error: 'Address, phone, and consent are required' };
+  //   }
 
-    try {
-      const response = await fetch('/api/submit-partial', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          address: formState.address,
-          phone: formState.phone,
-          consent: formState.consent
-        })
-      });
+  //   try {
+  //     const response = await fetch('/api/submit-partial', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         address: formState.address,
+  //         phone: formState.phone,
+  //         consent: formState.consent
+  //       })
+  //     });
 
-      const result = await response.json();
+  //     const result = await response.json();
       
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to submit partial lead');
-      }
+  //     if (!response.ok) {
+  //       throw new Error(result.error || 'Failed to submit partial lead');
+  //     }
 
-      // Store leadId for later use
-      updateFormData({ leadId: result.leadId });
-      return { success: true, leadId: result.leadId };
-    } catch (error) {
-      console.error('Error submitting partial lead:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      };
-    }
-  };
+  //     // Store leadId for later use
+  //     updateFormData({ leadId: result.leadId });
+  //     return { success: true, leadId: result.leadId };
+  //   } catch (error) {
+  //     console.error('Error submitting partial lead:', error);
+  //     return { 
+  //       success: false, 
+  //       error: error instanceof Error ? error.message : 'Unknown error' 
+  //     };
+  //   }
+  // };
 
   // Modified step completion handler
   const isStepComplete = (step: FormStep): boolean => {
     switch (step) {
       case 'initial':
-        // Submit partial lead when first step is completed
-        if (formState.address && formState.phone && !formState.leadId) {
-          submitPartialLead();
-        }
+        // COMMENTED OUT: Submit partial lead when first step is completed
+        // if (formState.address && formState.phone && !formState.leadId) {
+        //   submitPartialLead();
+        // }
         return Boolean(formState.address && formState.phone);
       case 'property-details':
         return Boolean(formState.propertyCondition);

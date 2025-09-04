@@ -135,31 +135,46 @@ async function sendToZapier(data: LeadFormData) {
   }
   
   console.log('Attempting to send to Zapier webhook...');
+  console.log('Webhook URL:', process.env.ZAPIER_WEBHOOK_URL.substring(0, 50) + '...');
+  console.log('Lead ID:', data.leadId);
+  console.log('Submission Type:', data.submissionType || 'complete');
 
   try {
+    const payload = {
+      ...data,
+      submissionType: 'complete',
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('Sending payload with fields:', Object.keys(payload).join(', '));
+    
     const response = await fetch(process.env.ZAPIER_WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        ...data,
-        submissionType: 'complete',
-        timestamp: new Date().toISOString()
-      })
+      body: JSON.stringify(payload)
     });
 
+    const responseText = await response.text();
+    console.log('Zapier response status:', response.status);
+    console.log('Zapier response:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
       console.error('Zapier webhook error:', {
         status: response.status,
         statusText: response.statusText,
-        error: errorText
+        error: responseText
       });
       throw new Error(`Failed to send to Zapier: ${response.statusText}`);
     }
 
-    return response.json();
+    // Parse response if it's JSON, otherwise return the text
+    try {
+      return JSON.parse(responseText);
+    } catch {
+      return { success: true, response: responseText };
+    }
   } catch (error) {
     console.error('Error in sendToZapier:', error);
     throw error;
@@ -268,6 +283,13 @@ export async function POST(request: Request) {
     // Log detailed results
     if (zapierResult.status === 'fulfilled') {
       console.log('✅ Successfully sent to Zapier webhook');
+      console.log('Zapier response data:', JSON.stringify(zapierResult.value, null, 2));
+      console.log('=== IMPORTANT: Check your Zapier dashboard ===');
+      console.log('1. Verify the Zap is turned ON (not paused)');
+      console.log('2. Check if there\'s a second action configured to send to CRM');
+      console.log('3. Review the Zap history for any errors in CRM submission');
+      console.log('4. Ensure field mapping is correct between webhook and CRM');
+      console.log('===============================================');
     } else {
       console.error('❌ Failed to send to Zapier:', zapierResult.reason);
       console.error('Zapier error details:', JSON.stringify(zapierResult.reason, null, 2));

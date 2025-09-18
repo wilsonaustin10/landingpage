@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from '../context/FormContext';
-import AddressInput from './AddressInput';
+import AddressInput from './LazyAddressInput';
 import type { AddressData } from '../types/GooglePlacesTypes';
 import { trackEvent, trackConversion } from '../utils/analytics';
 import { Loader2 } from 'lucide-react';

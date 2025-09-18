@@ -75,7 +75,7 @@ export default function ContactPage() {
           // Use a short timeout to prevent blocking the submission if reCAPTCHA is slow
           const tokenPromise = executeRecaptcha('submit_form');
           const timeoutPromise = new Promise<string | null>((resolve) => {
-            setTimeout(() => resolve(null), 1500); // Wait max 1.5 seconds
+            setTimeout(() => resolve(null), 1000); // Wait max 1 second
           });
           
           recaptchaToken = await Promise.race([tokenPromise, timeoutPromise]);

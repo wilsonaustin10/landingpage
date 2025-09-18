@@ -33,13 +33,23 @@ function loadGoogleMapsScript(): Promise<void> {
   }
 
   googleMapsPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Google Maps'));
-    document.head.appendChild(script);
+    // Use requestIdleCallback to load during idle time
+    const loadScript = () => {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly&loading=async`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Google Maps'));
+      document.head.appendChild(script);
+    };
+
+    // Use requestIdleCallback if available, otherwise load immediately
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadScript, { timeout: 3000 });
+    } else {
+      loadScript();
+    }
   });
 
   return googleMapsPromise;

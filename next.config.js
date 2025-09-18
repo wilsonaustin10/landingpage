@@ -17,6 +17,10 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   // Enable SWC minification
   swcMinify: true,
+  // Performance optimizations
+  experimental: {
+    scrollRestoration: true,
+  },
   // Optimize builds
   // Add caching headers
   async headers() {

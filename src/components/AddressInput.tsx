@@ -3,7 +3,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { useGooglePlacesLazy } from '../hooks/useGooglePlacesLazy';
 import type { AddressData } from '../types/GooglePlacesTypes';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useForm } from '../context/FormContext';
 
 interface AddressInputProps {
@@ -90,7 +90,7 @@ export default function AddressInput({
               ref={inputRef}
               type="text"
               placeholder="Enter your property address"
-              className={`w-full px-4 py-3 pl-10 text-lg border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all
+              className={`w-full px-4 py-3 text-lg border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all
                 ${error ? 'border-red-500' : 'border-gray-300'}`}
               defaultValue={defaultValue || formState.address}
               disabled={isLoading || isProcessing}
@@ -101,7 +101,6 @@ export default function AddressInput({
               aria-describedby={error ? 'address-error' : undefined}
               required
             />
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           </>
         )}
         

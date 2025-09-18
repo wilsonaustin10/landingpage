@@ -13,7 +13,7 @@ export default function AboutPage() {
         <div className="bg-white p-8 rounded-lg shadow-lg space-y-6">
           <div className="flex justify-center mb-8">
             <Image
-              src="/XVRlogo.png"
+              src="/XVRLogo.png"
               alt="XVR Buys Houses"
               width={300}
               height={80}

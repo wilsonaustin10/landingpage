@@ -32,7 +32,7 @@ export default function OptimizedHero() {
             Sell Your House Fast for Cash - Get Your Offer Today
           </h1>
           <p className="text-xl text-white mb-8 text-outline-black">
-            We buy houses in any condition across California, Nevada, Arizona, and Oregon. Get a fair cash offer in as little as 7 days - no repairs, no fees, and we cover closing costs.
+            We buy houses in any condition Nationwide. Get a fair cash offer in as little as 7 days - no repairs, no fees, and we cover closing costs.
           </p>
         </div>
         <div className="max-w-md mx-auto">

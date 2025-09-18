@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { useGooglePlaces } from '../hooks/useGooglePlaces';
+import React, { useRef, useState, useCallback } from 'react';
+import { useGooglePlacesLazy } from '../hooks/useGooglePlacesLazy';
 import type { AddressData } from '../types/GooglePlacesTypes';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import { useForm } from '../context/FormContext';
 
 interface AddressInputProps {
@@ -22,14 +22,13 @@ export default function AddressInput({
   readOnly = false
 }: AddressInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AddressData | null>(null);
   const [localError, setLocalError] = useState<string>('');
   const { formState, updateFormData, errors } = useForm();
 
   // Handle Google Places selection
-  const handleAddressSelect = async (addressData: AddressData) => {
+  const handleAddressSelect = useCallback(async (addressData: AddressData) => {
     setIsProcessing(true);
     
     try {
@@ -61,12 +60,20 @@ export default function AddressInput({
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [onAddressSelect, updateFormData]);
 
-  // Only initialize Google Places if not readOnly
-  if (!readOnly) {
-    useGooglePlaces(inputRef, handleAddressSelect);
-  }
+  // Use lazy-loaded Google Places
+  const { initializeAutocomplete, isLoading, isInitialized } = useGooglePlacesLazy(
+    inputRef, 
+    handleAddressSelect
+  );
+
+  // Initialize on focus/click
+  const handleInputInteraction = useCallback(() => {
+    if (!isInitialized && !readOnly) {
+      initializeAutocomplete();
+    }
+  }, [initializeAutocomplete, isInitialized, readOnly]);
 
   const error = externalError || localError || errors?.address;
 
@@ -78,25 +85,36 @@ export default function AddressInput({
             {formState.address}
           </div>
         ) : (
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Enter your property address"
-            className={`w-full px-4 py-3 text-lg border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all
-              ${error ? 'border-red-500' : 'border-gray-300'}`}
-            defaultValue={defaultValue || formState.address}
-            disabled={isLoading || isProcessing}
-            aria-label="Property address"
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? 'address-error' : undefined}
-            required
-          />
+          <>
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Enter your property address"
+              className={`w-full px-4 py-3 pl-10 text-lg border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all
+                ${error ? 'border-red-500' : 'border-gray-300'}`}
+              defaultValue={defaultValue || formState.address}
+              disabled={isLoading || isProcessing}
+              onFocus={handleInputInteraction}
+              onClick={handleInputInteraction}
+              aria-label="Property address"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? 'address-error' : undefined}
+              required
+            />
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          </>
         )}
         
         {(isLoading || isProcessing) && !readOnly && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
           </div>
+        )}
+
+        {!isInitialized && !readOnly && !isLoading && (
+          <p className="mt-1 text-xs text-gray-500">
+            Click to enable address autocomplete
+          </p>
         )}
 
         {error && !readOnly && (

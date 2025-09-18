@@ -23,6 +23,12 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent duplicate submissions
+    if (loading) {
+      console.log('Form submission already in progress, preventing duplicate');
+      return;
+    }
+    
     // Comprehensive validation before submission
     const validationErrors: string[] = [];
     
@@ -93,32 +99,8 @@ export default function ContactPage() {
         console.warn('reCAPTCHA not available for final form submission');
       }
 
-      // Submit complete form data to API
-      console.log('Submitting complete form data:', formState);
-      const response = await fetch('/api/submit-form', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formState,
-          lastUpdated: new Date().toISOString(),
-          ...(recaptchaToken ? { recaptchaToken } : {})
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('API response:', result);
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to save form data');
-      }
+      // Just update the form context with final data
+      console.log('Final form data collected:', formState);
 
       // Track successful submission
       trackEvent('form_submitted', {

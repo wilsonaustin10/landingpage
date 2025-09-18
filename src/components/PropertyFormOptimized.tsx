@@ -132,7 +132,7 @@ const PropertyFormOptimized = memo(function PropertyForm() {
         source: 'property_form'
       });
       
-      router.push('/property-details');
+      router.push('/property-listed');
     } catch (error) {
       console.error('Form submission error:', error);
       setErrors(prev => ({ 

@@ -10,7 +10,7 @@ interface FormContextType {
   setCurrentStep: (step: FormStep) => void;
   isStepCompleted: (step: FormStep) => boolean;
   clearFormData: () => void;
-  submitForm: () => Promise<SubmissionResponse>;
+  submitForm: (recaptchaToken?: string) => Promise<SubmissionResponse>;
   errors: FormErrors;
 }
 
@@ -143,7 +143,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Modified form submission to include leadId
-  const submitForm = async (): Promise<SubmissionResponse> => {
+  const submitForm = async (recaptchaToken?: string): Promise<SubmissionResponse> => {
     if (!validateForm()) {
       return { success: false, error: 'Please correct the errors before submitting' };
     }
@@ -156,7 +156,8 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formState,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
+          recaptchaToken
         })
       });
 

@@ -6,6 +6,7 @@ import { trackEvent } from '../utils/analytics';
 import { useGooglePlaces, AddressData } from '../hooks/useGooglePlaces';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useForm } from '../context/FormContext';
 
 interface FormErrors {
   address?: string;
@@ -14,11 +15,7 @@ interface FormErrors {
 }
 
 export default function LeadForm() {
-  const [formData, setFormData] = useState<LeadFormData>({
-    address: '',
-    phone: '',
-    consent: false,
-  });
+  const { formState, updateFormData } = useForm();
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -52,11 +49,11 @@ export default function LeadForm() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!validateAddress(formData.address)) {
+    if (!validateAddress(formState.address || '')) {
       newErrors.address = 'Please enter a valid property address';
     }
 
-    if (!validatePhone(formData.phone)) {
+    if (!validatePhone(formState.phone || '')) {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
@@ -72,10 +69,7 @@ export default function LeadForm() {
       ? addressData.formattedAddress
       : `${addressData.formattedAddress} ${addressData.postalCode || ''}`.trim();
 
-    setFormData(prev => ({
-      ...prev,
-      address: fullAddress
-    }));
+    updateFormData({ address: fullAddress });
     setErrors(prev => ({ ...prev, address: undefined }));
   };
 
@@ -145,10 +139,10 @@ export default function LeadForm() {
                   ? 'border-red-500 focus:ring-red-500' 
                   : 'border-gray-300 focus:ring-primary'} 
                 focus:ring-2 focus:border-transparent`}
-              defaultValue={formData.address}
+              defaultValue={formState.address}
               onChange={(e) => {
                 console.log('Address input changed:', e.target.value);
-                setFormData(prev => ({ ...prev, address: e.target.value }));
+                updateFormData({ address: e.target.value });
               }}
               onBlur={() => handleBlur('address')}
               required
@@ -172,10 +166,10 @@ export default function LeadForm() {
                   ? 'border-red-500 focus:ring-red-500' 
                   : 'border-gray-300 focus:ring-primary'}
                 focus:ring-2 focus:border-transparent`}
-              value={formData.phone}
+              value={formState.phone || ''}
               onChange={(e) => {
                 const formatted = formatPhoneNumber(e.target.value);
-                setFormData({ ...formData, phone: formatted });
+                updateFormData({ phone: formatted });
                 if (touched.phone) validateForm();
               }}
               onBlur={() => handleBlur('phone')}

@@ -9,7 +9,7 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 export default function ContactPage() {
   const router = useRouter();
-  const { formState, updateFormData } = useForm();
+  const { formState, updateFormData, submitForm } = useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -99,21 +99,30 @@ export default function ContactPage() {
         console.warn('reCAPTCHA not available for final form submission');
       }
 
-      // Just update the form context with final data
-      console.log('Final form data collected:', formState);
-
-      // Track successful submission
-      trackEvent('form_submitted', {
-        hasEmail: !!formState.email,
-        hasPhone: !!formState.phone,
-        hasAddress: !!formState.address,
-        hasPropertyCondition: !!formState.propertyCondition,
-        isPropertyListed: formState.isPropertyListed,
-        hasTimeframe: !!formState.timeframe,
-        hasPrice: !!formState.price
+      console.log('Submitting complete form data to API with reCAPTCHA:', {
+        hasRecaptchaToken: !!recaptchaToken,
+        formFields: Object.keys(formState)
       });
 
-      router.push('/thank-you');
+      // Submit the form data to the API with reCAPTCHA token
+      const result = await submitForm(recaptchaToken || undefined);
+
+      if (result.success) {
+        // Track successful submission
+        trackEvent('form_submitted', {
+          hasEmail: !!formState.email,
+          hasPhone: !!formState.phone,
+          hasAddress: !!formState.address,
+          hasPropertyCondition: !!formState.propertyCondition,
+          isPropertyListed: formState.isPropertyListed,
+          hasTimeframe: !!formState.timeframe,
+          hasPrice: !!formState.price
+        });
+
+        router.push('/thank-you');
+      } else {
+        throw new Error(result.error || 'Form submission failed');
+      }
     } catch (err) {
       setError('Something went wrong. Please try again.');
       console.error('Submission error:', err);

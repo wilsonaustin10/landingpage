@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from '../context/FormContext';
 import dynamic from 'next/dynamic';
 import type { AddressData } from '../types/GooglePlacesTypes';
-import { trackEvent, trackConversion } from '../utils/analytics';
+import { trackEvent } from '../utils/analytics';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 // Lazy load AddressInput only when needed
@@ -108,39 +108,26 @@ const PropertyFormOptimized = memo(function PropertyForm() {
     setIsSubmitting(true);
     
     try {
+      // Just save the consent and data to context, don't submit to API yet
       updateFormData({ consent: consentGiven });
       
-      const response = await fetch('/api/submit-form', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formState,
-          consent: consentGiven,
-          timestamp: new Date().toISOString()
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit form');
-      }
-
-      trackConversion();
-      trackEvent('form_submitted_successfully', { 
+      // Track the first step completion (not a submission)
+      trackEvent('form_step_1_completed', { 
         address: formState.address,
         source: 'property_form'
       });
       
+      // Navigate to the next step without API submission
+      await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for better UX
       router.push('/property-listed');
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error('Navigation error:', error);
       setErrors(prev => ({ 
         ...prev, 
-        submit: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.' 
+        submit: 'Something went wrong. Please try again.' 
       }));
       
-      trackEvent('form_submission_failed', { 
+      trackEvent('form_navigation_failed', { 
         error: error instanceof Error ? error.message : 'Unknown error',
         address: formState.address 
       });

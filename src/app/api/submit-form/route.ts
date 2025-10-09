@@ -4,6 +4,19 @@ import { LeadFormData } from '@/types';
 import { rateLimit } from '@/utils/rateLimit';
 import { appendLeadToSheet } from '@/utils/googleSheets';
 
+// In-memory store to track recent submissions (cleared after 5 minutes)
+const recentSubmissions = new Map<string, number>();
+
+// Clean up old entries every 5 minutes
+setInterval(() => {
+  const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+  for (const [key, timestamp] of recentSubmissions.entries()) {
+    if (timestamp < fiveMinutesAgo) {
+      recentSubmissions.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
+
 // Validate complete form data - ONLY accept fully completed forms
 function validateFormData(data: Partial<LeadFormData>): data is LeadFormData {
   if (!data || typeof data !== 'object') {
@@ -246,6 +259,28 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // 2a. Check for duplicate submission based on email + phone combination
+    const submissionKey = `${data.email}_${data.phone}`.toLowerCase();
+    const lastSubmissionTime = recentSubmissions.get(submissionKey);
+    
+    // If same email+phone submitted within last 30 seconds, reject as duplicate
+    if (lastSubmissionTime && Date.now() - lastSubmissionTime < 30000) {
+      console.log('Duplicate submission detected for:', submissionKey);
+      console.log('Time since last submission:', Date.now() - lastSubmissionTime, 'ms');
+      return NextResponse.json(
+        { 
+          success: true, 
+          leadId: data.leadId || leadId,
+          message: 'Submission already processed',
+          isDuplicate: true 
+        },
+        { status: 200 }
+      );
+    }
+    
+    // Record this submission
+    recentSubmissions.set(submissionKey, Date.now());
 
     // 3. Verify reCAPTCHA token if present
     if (data.recaptchaToken) {

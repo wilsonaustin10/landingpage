@@ -78,38 +78,6 @@ export default function RootLayout({
           }}
         />
         <Script
-          strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=AW-16967791791"
-        />
-        <Script
-          id="gtag-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'AW-16967791791');
-              
-              // Google Conversion Tracking
-              function gtag_report_conversion(url) {
-                var callback = function () {
-                  if (typeof(url) != 'undefined') {
-                    window.location = url;
-                  }
-                };
-                gtag('event', 'conversion', {
-                  'send_to': 'AW-16967791791/q_jACIuaq7IaEK_p75o_',
-                  'value': 1.0,
-                  'currency': 'USD',
-                  'event_callback': callback
-                });
-                return false;
-              }
-            `,
-          }}
-        />
-        <Script
           id="structured-data"
           type="application/ld+json"
           dangerouslySetInnerHTML={{

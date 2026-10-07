@@ -12,10 +12,11 @@ const HEADERS = process.env.VERCEL_BYPASS
   ? { 'x-vercel-protection-bypass': process.env.VERCEL_BYPASS }
   : {};
 
-const INDEXABLE = ['/', '/about', '/contact', '/privacy-policy', '/terms-of-service'];
+const INDEXABLE = ['/', '/about', '/privacy-policy', '/terms-of-service'];
 // Multi-step lead-form steps. /timeline is a form step ("A Couple More Questions":
 // timeframe + condition selects, submits to /contact), so it is treated as funnel.
-const FUNNEL = ['/timeline', '/thank-you', '/property-details', '/property-value', '/property-listed'];
+// /contact is the final form step (name/email/phone -> submit -> /thank-you).
+const FUNNEL = ['/contact', '/timeline', '/thank-you', '/property-details', '/property-value', '/property-listed'];
 
 const cache = new Map();
 async function get(path) {
@@ -76,12 +77,13 @@ test('indexable pages are not noindexed', async () => {
   }
 });
 
-test('funnel steps are "noindex, follow" and do not canonicalise to the homepage', async () => {
+test('funnel steps are "noindex, follow" with no canonical', async () => {
   for (const p of FUNNEL) {
     const html = (await get(p)).body;
     const robots = metaContent(html, 'robots');
     assert.ok(robots.some((r) => /noindex/.test(r) && /(^|,\s*)follow/.test(r)), `${p} robots=${JSON.stringify(robots)}`);
-    assert.ok(!canonicals(html).some((c) => c === HOST || c === HOST + '/'), `${p} canonical points at homepage`);
+    // No canonical at all: canonical + noindex is a mixed signal to Google.
+    assert.deepEqual(canonicals(html), [], `${p} has a canonical`);
   }
 });
 

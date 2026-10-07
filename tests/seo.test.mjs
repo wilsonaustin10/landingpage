@@ -20,7 +20,9 @@ const FUNNEL = ['/timeline', '/thank-you', '/property-details', '/property-value
 const cache = new Map();
 async function get(path) {
   if (!cache.has(path)) {
-    const res = await fetch(BASE + path, { headers: HEADERS, redirect: 'follow' });
+    // redirect: 'manual' on purpose: a protected Vercel preview 302s to
+    // vercel.com/login, and following it made the 200 test pass on a login page.
+    const res = await fetch(BASE + path, { headers: HEADERS, redirect: 'manual' });
     cache.set(path, { status: res.status, body: await res.text() });
   }
   return cache.get(path);

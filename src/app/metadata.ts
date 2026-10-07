@@ -1,8 +1,12 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sell Your House Fast | Get a Cash Offer Today - XVR Buys Houses',
-  description: 'We buy houses in any condition. Submit your address for a fast, no-obligation cash offer. Close in as little as 7 days. No repairs, no fees.',
+  // Root metadata doubles as the homepage's (page.tsx is a client component and
+  // cannot export metadata). Title/description are the homepage H1 + hero intro
+  // verbatim; every other route overrides both in its own page/layout so no two
+  // indexable pages share a title.
+  title: 'Sell Your House Fast for Cash - Get Your Offer Today | XVR Buys Houses',
+  description: 'We buy houses in any condition Nationwide. Get a fair cash offer in as little as 7 days - no repairs, no fees, and we cover closing costs.',
   keywords: [
     'sell house fast',
     'cash offer house',
@@ -24,9 +28,10 @@ export const metadata: Metadata = {
     telephone: false,
   },
   metadataBase: new URL('https://offer.xvrbuyshouses.com'),
-  alternates: {
-    canonical: '/',
-  },
+  // TRAP: do NOT set alternates.canonical here. The root layout's metadata is
+  // inherited by every route, so a canonical of '/' here made all pages
+  // (including funnel steps) canonicalise to the homepage. Each indexable page
+  // sets its own self-referencing canonical; funnel steps (noindex) get none.
   openGraph: {
     title: 'Sell Your House Fast | Get a Cash Offer Today',
     description: 'We buy houses in any condition. Submit your address for a fast, no-obligation cash offer. Close in as little as 7 days.',

@@ -3,7 +3,9 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | XVR Buys Houses',
-  description: 'Our privacy policy explains how we collect, use, and protect your personal information when you use our services.',
+  // Description = first sentence of the page's own Introduction section.
+  description: 'XVR Buys Houses ("we," "our," or "us") is committed to protecting the privacy and security of your personal information.',
+  alternates: { canonical: '/privacy-policy' },
 };
 
 export default function PrivacyPolicy() {

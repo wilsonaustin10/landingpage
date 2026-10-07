@@ -58,7 +58,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
-        <link rel="canonical" href="https://offer.xvrbuyshouses.com" />
+        {/* No hardcoded canonical here: it was duplicated on every page and pointed
+            all of them at the homepage. Canonicals come from per-route metadata. */}
         <meta name="google-site-verification" content="your-google-verification-code" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

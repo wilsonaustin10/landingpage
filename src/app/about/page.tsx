@@ -1,6 +1,14 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+// Title = this page's H1; description = first sentence of its "Our Mission" intro.
+export const metadata: Metadata = {
+  title: 'About XVR Buys Houses',
+  description: "At XVR Buys Houses, we're more than just property investors – we're a team of wholesome family men with a genuine passion for helping families navigate through difficult situations.",
+  alternates: { canonical: '/about' },
+};
 
 export default function AboutPage() {
   return (

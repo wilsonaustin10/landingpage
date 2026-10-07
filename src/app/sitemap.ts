@@ -3,6 +3,9 @@ import { MetadataRoute } from 'next';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://offer.xvrbuyshouses.com';
   
+  // Only indexable pages. Funnel steps (/property-listed, /property-details,
+  // /property-value, /timeline, /thank-you) are noindex and must not be listed:
+  // a sitemap URL that is noindexed is a conflicting signal in Search Console.
   return [
     {
       url: baseUrl,
@@ -15,36 +18,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/property-details`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/property-value`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/thank-you`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/property-listed`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/timeline`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
     },
     {
       url: `${baseUrl}/about`,

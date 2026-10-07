@@ -3,7 +3,9 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | XVR Buys Houses',
-  description: 'Our terms of service outline the rules, guidelines, and legal agreements between you and XVR Buys Houses.',
+  // Description = opening of the page's own "Acceptance of Terms" section.
+  description: 'Welcome to XVR Buys Houses. These Terms of Service ("Terms") govern your access to and use of our website, services, and content.',
+  alternates: { canonical: '/terms-of-service' },
 };
 
 export default function TermsOfService() {

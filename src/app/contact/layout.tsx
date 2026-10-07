@@ -6,7 +6,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'This is the last step! | XVR Buys Houses',
   description: 'This is the last step! Get Your Offer.',
-  alternates: { canonical: '/contact' },
+  // Funnel step (final lead-form step): keep out of the index, follow links,
+  // no canonical (canonical + noindex is a mixed signal).
+  robots: { index: false, follow: true },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
